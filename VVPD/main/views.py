@@ -1,5 +1,6 @@
 from django.http import HttpResponse
+from django.shortcuts import render
+from uuid import uuid4
 
-
-def index(request):
-    return HttpResponse('<h4>Текст из views (метод index)<h4>')
+def index_page(request):
+    return render(request, 'indexPage.html')
