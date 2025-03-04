@@ -3,6 +3,7 @@ from django.shortcuts import render
 from datetime import datetime
 
 
+
 def index_page(request):
     return render(request, 'indexPage.html')
 
