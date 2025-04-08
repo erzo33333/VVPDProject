@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shedle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="h-screen flex flex-col">
+  <!-- Header - Responsive adjustments -->
+  <div class="bg-[#1E1E1E] h-12 flex items-center justify-between px-2 sm:px-4">
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <span class="text-base sm:text-xl font-bold text-purple-500">Shedle</span>
+    </div>
+
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <div class="relative hidden sm:block">
+        <input type="text" placeholder="Поиск"
+          class="bg-black text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full w-32 sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500">
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 sm:h-5 sm:w-5 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <div class="relative">
+          <button class="text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </button>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">4</span>
+        </div>
+
+        <button class="bg-gray-700 rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content - Responsive layout -->
+  <div class="flex flex-col sm:flex-row flex-1 overflow-hidden">
+    <!-- Left Sidebar - 25% width -->
+    <div class="w-full sm:w-[16%] border-r border-gray-200 p-4 overflow-y-auto">
+      <div class="space-y-4">
+        <div class="flex space-x-2 mb-2 overflow-x-auto">
+          <button class="px-3 py-1.5 rounded-md bg-black text-white text-sm flex-shrink-0">Друзья 0</button>
+          <button class="px-3 py-1.5 rounded-md bg-gray-200 text-black text-sm flex-shrink-0">Мероприятия</button>
+          <button class="px-3 py-1.5 rounded-md bg-gray-200 text-black text-sm flex-shrink-0">Чаты</button>
+        </div>
+        <div class="relative mb-2">
+          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-4.35-4.35M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13z" />
+          </svg>
+          <input type="text" placeholder="Поиск в друзьях"
+            class="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-500 text-sm border border-black focus:outline-none focus:ring-0">
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <button class="bg-black text-white px-4 py-2 rounded-full text-xs mb-2 sm:mb-0">+ Создать группу</button>
+          <button class="bg-black text-white px-4 py-2 rounded-full text-xs">Заявки в друзья</button>
+        </div>
+        <div class="text-center text-gray-500 text-xs">Друзей не найдено</div>
+      </div>
+    </div>
+
+    <!-- Center Content - 30% width -->
+    <div class="w-full sm:w-[16%] p-4 overflow-y-auto bg-white text-white space-y-4">
+      <!-- Header -->
+      <div class="bg-gray-700 rounded-lg py-4 text-center">
+        <h3 class="text-sm">Редактировать расписание</h3>
+      </div>
+
+      <!-- Calendar Section - Simplified for mobile -->
+      <div class="bg-gray-700 rounded-lg p-4">
+        <div class="text-sm text-white mb-3">март</div>
+
+        <!-- Week Days - Responsive grid -->
+        <div class="grid grid-cols-7 text-center text-white text-xs sm:text-sm mb-3">
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+          <div>4</div>
+          <div>5</div>
+          <div>6</div>
+          <div>7</div>
+        </div>
+
+        <!-- Highlighted Week - Responsive -->
+        <div class="flex justify-between items-center bg-gray-200 text-black rounded-full px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm mb-3">
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+          <div>4</div>
+          <div>5</div>
+          <div>6</div>
+          <div>7</div>
+        </div>
+
+        <!-- Other Rows - Responsive grid -->
+        <div class="grid grid-cols-7 text-center text-white text-xs sm:text-sm gap-y-1 sm:gap-y-2">
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+          <div>4</div>
+          <div>5</div>
+          <div>6</div>
+          <div>7</div>
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+          <div>4</div>
+          <div>5</div>
+          <div>6</div>
+          <div>7</div>
+        </div>
+      </div>
+
+      <!-- Bottom Buttons Section - Responsive -->
+      <div class="bg-gray-700 rounded-lg flex items-center justify-center h-24 sm:h-40 text-center text-white text-sm sm:text-lg">
+        Кнопки
+      </div>
+    </div>
+
+    <!-- Right Sidebar - 40% width -->
+    <div class="hidden sm:flex bg-[#FFFDD0] rounded-lg border-2 border-blue-500 shadow-md p-4 w-[68%] gap-x-3 mt-4 mb-4">
+      <!-- Days of Week Column -->
+      <div class="relative w-5 h-full">
+        <!-- Left Arrow Button -->
+        <div class="absolute left-[-16px] top-1/2 -translate-y-1/2 w-4 h-8 bg-white rounded-full shadow flex items-center justify-center text-sm text-gray-700 border z-10">
+          ←
+        </div>
+
+        <!-- Vertical Column with Rotated Text -->
+        <div class="bg-[#3F4042] border-r border-[#47494C] w-full h-full flex items-center justify-center">
+          <div class="text-white text-sm transform -rotate-90 whitespace-nowrap origin-center">
+            Дни недели
+          </div>
+        </div>
+      </div>
+
+      <!-- Hours Column -->
+      <div class="flex-1 flex flex-col">
+        <!-- Hours Header -->
+        <!-- Time Slots Grid -->
+        <div class="grid grid-rows-10 grid-flow-col flex-1 gap-y-2">
+          <!-- Repeating rows with borders -->
+          <div class="bg-[#3F4042] text-white text-center py-0.5 text-sm">
+            Часы
+          </div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
+          <div class="bg-[#3F4042]"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

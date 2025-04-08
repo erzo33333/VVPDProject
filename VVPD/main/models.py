@@ -2,18 +2,24 @@ from django.db import models
 
 
 class User(models.Model):
-    name = models.CharField(max_length=30, blank=False)
-    login = models.CharField(max_length=30, blank=False)
-    password = models.CharField(max_length=50, blank=False)
-    EventsID = models.JSONField(null=True, blank=True, default=[])
-    FriendsID = models.JSONField(null=True, blank=True, default=[])
+    Name = models.CharField(max_length=30, blank=False)
+    Login = models.CharField(max_length=30, blank=False)
+    Password = models.CharField(max_length=50, blank=False)
+    Friends = models.ManyToManyField("self", symmetrical=True, blank=True)
+
+    def __str__(self):
+        return f'{self.Name} {self.id}'
+
 
 
 class Event(models.Model):
-    name = models.CharField(max_length=30, blank=False)
-    creatorID = models.CharField(max_length=200)
-    startTime = models.DateTimeField(blank=False)
-    endTime = models.DateTimeField(blank=False)
-    description = models.JSONField(null=True, blank=True, default=[])
-    colour = models.CharField(max_length=20, blank=True, default='grey')
-    participants = models.JSONField(blank=True, default=[]) #надо не забыть добавить метод добавления сюда creatorID при создании объекта
+    Title = models.CharField(max_length=40, blank=False, default='event')
+    CreatorID = models.CharField(max_length=200)
+    StartTime = models.DateTimeField(blank=False)
+    EndTime = models.DateTimeField(blank=False)
+    Description = models.JSONField(null=True, blank=True, default=[])
+    Colour = models.CharField(max_length=20, blank=True, default='grey')
+    Participants = models.ManyToManyField(User, related_name="events")
+
+    def __str__(self):
+        return f'{self.Title} {self.id}'
