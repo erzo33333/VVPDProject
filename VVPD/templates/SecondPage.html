@@ -6,5 +6,12 @@
 </head>
 <body>
     <h1>Создал её чисто для того, чтобы понять, как эта тема работает ¯\_(ツ)_/¯</h1>
+    <div>
+        {% if user.is_authenticated %}
+            <p><a href="{% url 'logout' %}">Выйти</a></p>
+        {% else %}
+            <p><a href="{% url 'login' %}">Войти</a></p>
+        {% endif %}
+    </div>
 </body>
 </html>
