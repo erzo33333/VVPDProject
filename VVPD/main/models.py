@@ -9,7 +9,6 @@ class User(AbstractUser):
         return f'{self.username} {self.id}'
 
 
-
 class Event(models.Model):
     Title = models.CharField(max_length=40, blank=False, default='event')
     CreatorID = models.CharField(max_length=200)
