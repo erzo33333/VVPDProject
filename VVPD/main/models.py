@@ -1,12 +1,15 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 
 
-class User(AbstractUser):
+class User(models.Model):
+    Name = models.CharField(max_length=30, blank=False)
+    Login = models.CharField(max_length=30, blank=False)
+    Password = models.CharField(max_length=50, blank=False)
     Friends = models.ManyToManyField("self", symmetrical=True, blank=True)
 
     def __str__(self):
-        return f'{self.username} {self.id}'
+        return f'{self.Name} {self.id}'
+
 
 
 class Event(models.Model):
