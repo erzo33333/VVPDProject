@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-from main.views import index_page, second_page
+from main.views import main_page, index_page, second_page, user_login, register, user_logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('main.urls')),
-    path('', index_page),
-    path('second/', second_page)
+    path('login/', user_login, name='login'),
+    path('logout/', user_logout, name='logout'),
+    path('register/', register, name='register'),
+    path('', main_page, name='main page'),
+    path('index/', index_page),
+    path('second/', second_page, name='second'),
 ]
 
