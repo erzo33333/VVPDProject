@@ -436,22 +436,31 @@
             timelineViewContainer.innerHTML = ''; 
 
             if (!startDate || !endDate) {
-                alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре.");
+                // This alert was removed in a previous step, user confirmed selection is required
+                // alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре.");
+                // Defaulting to a 7-day range if nothing is selected (or only start)
+                // This path should ideally not be hit if button logic requires selection.
                 const todayForTimeline = new Date();
                 const sevenDaysLaterForTimeline = new Date();
                 sevenDaysLaterForTimeline.setDate(todayForTimeline.getDate() + 6);
-                startDate = todayForTimeline;
-                endDate = sevenDaysLaterForTimeline;
+                startDate = startDate || todayForTimeline; // Use provided startDate if available
+                endDate = endDate || sevenDaysLaterForTimeline; // Use provided endDate if available
             }
             
             // Hide center column and its resizer, make timeline (right column) visible and effectively expand
             if (centerColumnEl) centerColumnEl.style.display = 'none';
             if (resizerCenterRightEl) resizerCenterRightEl.style.display = 'none';
-            if (timelineViewContainer) timelineViewContainer.style.display = 'flex'; // Ensure it's flex if it was display:none before
+            if (timelineViewContainer) timelineViewContainer.style.display = 'flex';
 
             let currentDate = new Date(startDate); 
+            currentDate.setHours(0,0,0,0); // Ensure currentDate starts at the beginning of the day
+            
+            let processingEndDate = new Date(endDate); 
+            processingEndDate.setHours(23, 59, 59, 999); // Set to end of the selected day for comparison
 
-            while (currentDate <= endDate) {
+            console.log(`Timeline loop: currentDate starts at ${currentDate.toISOString()}, processingEndDate is ${processingEndDate.toISOString()}`);
+
+            while (currentDate <= processingEndDate) {
                 const dayEntry = document.createElement('div');
                 dayEntry.classList.add('timeline-day-entry');
 
@@ -481,9 +490,11 @@
                 timelineViewContainer.appendChild(dayEntry);
 
                 // Fetch and display events for this specific day
-                fetchAndDisplayEventsForTimelineDay(currentDate, dayContent);
+                // Pass a new Date object to avoid modification issues if currentDate is mutated elsewhere by async calls
+                fetchAndDisplayEventsForTimelineDay(new Date(currentDate), dayContent);
 
                 currentDate.setDate(currentDate.getDate() + 1); 
+                currentDate.setHours(0,0,0,0); // Ensure time is reset for the next iteration
             }
         }
 
@@ -503,12 +514,14 @@
                 }
                 const events = await response.json();
 
+                // If no events, display placeholder and return
                 if (events.length === 0) {
                     dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Нет событий на день</div>';
                     return;
                 }
 
-                dayContentElement.innerHTML = ''; // Clear loading/placeholder
+                // Clear loading/placeholder ONLY if there are events to process
+                dayContentElement.innerHTML = ''; 
 
                 let eventTopOffset = 0; 
                 const eventHeight = 22; 
@@ -535,31 +548,39 @@
                     // Effective end time for rendering on this day
                     let displayEndTimeOnDay = originalEventEnd < dayBoundaryEnd ? originalEventEnd : dayBoundaryEnd;
 
+                    // --- BEGIN DETAILED DATE LOGGING ---
+                    console.log(`  DEBUG DATES for event: ${event.title} on ${dateObj.toDateString()}`);
+                    console.log(`    dateObj (local for day): ${dateObj.toString()}`);
+                    console.log(`    originalEventStart (ISO): ${originalEventStart.toISOString()}, originalEventStart (local): ${originalEventStart.toString()}`);
+                    console.log(`    originalEventEnd (ISO): ${originalEventEnd.toISOString()}, originalEventEnd (local): ${originalEventEnd.toString()}`);
+                    console.log(`    dayBoundaryStart (ISO): ${dayBoundaryStart.toISOString()}, dayBoundaryStart (local): ${dayBoundaryStart.toString()}`);
+                    console.log(`    dayBoundaryEnd (ISO): ${dayBoundaryEnd.toISOString()}, dayBoundaryEnd (local): ${dayBoundaryEnd.toString()}`);
+                    console.log(`    displayStartTimeOnDay (ISO): ${displayStartTimeOnDay.toISOString()}, displayStartTimeOnDay (local): ${displayStartTimeOnDay.toString()}`);
+                    console.log(`    displayEndTimeOnDay (ISO): ${displayEndTimeOnDay.toISOString()}, displayEndTimeOnDay (local): ${displayEndTimeOnDay.toString()}`);
+                    // --- END DETAILED DATE LOGGING ---
+
                     // If event doesn't actually fall on this day after clamping, skip
-                    if (displayStartTimeOnDay > displayEndTimeOnDay) {
-                        console.log(`  Event ${event.title} SKIPPED for ${dateObj.toDateString()}: displayStartTimeOnDay > displayEndTimeOnDay`); // DEBUG
+                    if (displayStartTimeOnDay > displayEndTimeOnDay) { // This check uses full Date objects, should be fine
+                        console.log(`  Event ${event.title} SKIPPED for ${dateObj.toDateString()}: displayStartTimeOnDay > displayEndTimeOnDay`); 
                         return; 
                     }
                     
-                    const isAllDayForThisCell = (originalEventStart <= dayBoundaryStart && originalEventEnd >= dayBoundaryEnd);
-                    console.log(`  Original Times: Start=${originalEventStart.toISOString()}, End=${originalEventEnd.toISOString()}`); // DEBUG
-                    console.log(`  Day Boundaries: Start=${dayBoundaryStart.toISOString()}, End=${dayBoundaryEnd.toISOString()}`); // DEBUG
-                    console.log(`  Display Times on Day: Start=${displayStartTimeOnDay.toISOString()}, End=${displayEndTimeOnDay.toISOString()}`); // DEBUG
-                    console.log(`  Is All Day for this cell: ${isAllDayForThisCell}`); // DEBUG
-
-                    // Calculate LTRB for proportional display using displayStartTimeOnDay and displayEndTimeOnDay
                     const dayTotalMinutes = 24 * 60;
 
-                    let eventStartMinutesOnDay = (displayStartTimeOnDay.getHours() * 60) + displayStartTimeOnDay.getMinutes();
-                    let eventEndMinutesOnDay = (displayEndTimeOnDay.getHours() * 60) + displayEndTimeOnDay.getMinutes();
+                    // Use UTC hours/minutes for positioning to match apparent time from server
+                    let eventStartMinutesOnDay = (displayStartTimeOnDay.getUTCHours() * 60) + displayStartTimeOnDay.getUTCMinutes();
+                    let eventEndMinutesOnDay = (displayEndTimeOnDay.getUTCHours() * 60) + displayEndTimeOnDay.getUTCMinutes();
                     
-                    // If displayEndTimeOnDay is 23:59:59.xxx, consider its end minute as 1440 for width calculation
-                    if (displayEndTimeOnDay.getHours() === 23 && displayEndTimeOnDay.getMinutes() === 59 && displayEndTimeOnDay.getSeconds() === 59) {
+                    if (displayEndTimeOnDay.getUTCHours() === 23 && 
+                        displayEndTimeOnDay.getUTCMinutes() === 59 && 
+                        displayEndTimeOnDay.getUTCSeconds() >= 59) { 
                         eventEndMinutesOnDay = dayTotalMinutes;
                     }
 
                     const eventDurationMinutesOnDay = Math.max(0, eventEndMinutesOnDay - eventStartMinutesOnDay);
-                    console.log(`  Event Minutes on Day: Start=${eventStartMinutesOnDay}, End=${eventEndMinutesOnDay}, Duration=${eventDurationMinutesOnDay}`); // DEBUG
+                    console.log(`  Event Minutes on Day (using UTC components): Start=${eventStartMinutesOnDay}, End=${eventEndMinutesOnDay}, Duration=${eventDurationMinutesOnDay}`);
+
+                    const isAllDayForThisCell = (originalEventStart <= dayBoundaryStart && originalEventEnd >= dayBoundaryEnd);
 
                     if (eventDurationMinutesOnDay > 0 || isAllDayForThisCell) { 
                         let currentLeftPercentage, currentWidthPercentage;
@@ -573,7 +594,7 @@
                             eventItem.style.left = `${currentLeftPercentage}%`;
                             eventItem.style.width = `${Math.max(currentWidthPercentage, 2)}%`;
                         }
-                        console.log(`  Applied Styles: Left=${eventItem.style.left}, Width=${eventItem.style.width}, Top=${eventTopOffset}px, BG=${event.color || '#777'}`); // DEBUG
+                        console.log(`  Applied Styles: Left=${eventItem.style.left}, Width=${eventItem.style.width}, Top=${eventTopOffset}px, BG=${event.color || '#777'}`);
                         
                         eventItem.style.top = `${eventTopOffset}px`;
                         eventTopOffset += eventHeight + eventMargin; 
@@ -583,9 +604,12 @@
                         if (isAllDayForThisCell) {
                             eventTime.textContent = "Весь день";
                         } else {
-                            const startTimeStr = displayStartTimeOnDay.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            const endTimeStr = displayEndTimeOnDay.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            eventTime.textContent = `${startTimeStr} - ${endTimeStr}`;
+                            // Format UTC time for display
+                            const startHoursUTC = String(displayStartTimeOnDay.getUTCHours()).padStart(2, '0');
+                            const startMinutesUTC = String(displayStartTimeOnDay.getUTCMinutes()).padStart(2, '0');
+                            const endHoursUTC = String(displayEndTimeOnDay.getUTCHours()).padStart(2, '0');
+                            const endMinutesUTC = String(displayEndTimeOnDay.getUTCMinutes()).padStart(2, '0');
+                            eventTime.textContent = `${startHoursUTC}:${startMinutesUTC} - ${endHoursUTC}:${endMinutesUTC}`;
                         }
 
                         const eventTitle = document.createElement('span');
@@ -605,6 +629,11 @@
                     }
                 });
 
+                // After looping, if no event items were actually added, show placeholder
+                if (dayContentElement.children.length === 0) {
+                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Нет событий на день</div>';
+                }
+
             } catch (error) {
                 console.error(`Error fetching or displaying events for ${year}-${month}-${day}:`, error);
                 dayContentElement.innerHTML = '<div class="timeline-event-placeholder" style="color: red;">Ошибка при отображении событий</div>';
@@ -614,9 +643,11 @@
         if (viewScheduleButton) {
             viewScheduleButton.addEventListener('click', () => {
                 if (selectedStartDate && selectedEndDate) {
+                    console.log(`Calling generateTimelineView with startDate: ${selectedStartDate}, endDate: ${selectedEndDate}`);
                     generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
                 } else if (selectedStartDate) {
                     alert("Пожалуйста, выберите и конечную дату на календаре.");
+                    console.log(`Calling generateTimelineView (single day) with startDate: ${selectedStartDate}, endDate: ${selectedStartDate}`);
                     generateTimelineView(new Date(selectedStartDate), new Date(selectedStartDate)); 
                 } else {
                     alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре или хотя бы начальную.");

@@ -194,16 +194,21 @@ def get_event_details(request, event_id):
 @login_required
 def get_day_events(request, year, month, day):
     target_date = datetime.date(year, month, day)
+    logger.info(f"[get_day_events] Requested for date: {target_date}")
     # Fetch events that are active on the target_date
     # An event is active if its StartTime (date part) <= target_date AND EndTime (date part) >= target_date
-    events = Event.objects.filter(
+    events_qs = Event.objects.filter(
         Q(Creator=request.user), # Or Q(Participants=request.user) if they should see events they are part of
         Q(StartTime__date__lte=target_date),
         Q(EndTime__date__gte=target_date)
     ).distinct().order_by('StartTime')
 
+    logger.info(f"[get_day_events] Found {events_qs.count()} events for {target_date} before serialization.")
+    for ev in events_qs:
+        logger.info(f"  - Event ID: {ev.id}, Title: {ev.Title}, Start: {ev.StartTime}, End: {ev.EndTime}")
+
     event_list = []
-    for event in events:
+    for event in events_qs:
         event_list.append({
             'id': event.id,
             'title': event.Title,
