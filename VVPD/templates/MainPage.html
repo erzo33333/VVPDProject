@@ -1,245 +1,858 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schedle</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-    body {
-      margin: 0;
-      background: #f5f5f5;
-    }
-    header {
-      background: #1f1f1f;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-    }
-    header .logo {
-      display: flex;
-      align-items: center;
-    }
-    header .logo h1 {
-      margin-left: 10px;
-      font-size: 24px;
-    }
-    header input[type="text"] {
-      width: 200px;
-      padding: 5px;
-      border-radius: 5px;
-      border: none;
-    }
-    header .profile {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .container {
-      display: flex;
-    }
-    .sidebar {
-      width: 250px;
-      background: #fff;
-      padding: 15px;
-      border-right: 1px solid #ddd;
-    }
-    .sidebar button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .sidebar input[type="text"] {
-      width: 100%;
-      margin-top: 10px;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .main {
-      flex: 1;
-      padding: 20px;
-      display: flex;
-    }
-    .left-panel {
-      width: 300px;
-      margin-right: 20px;
-    }
-    .left-panel button {
-      margin-top: 10px;
-      margin-right: 10px;
-      padding: 8px;
-      border: none;
-      border-radius: 5px;
-      background: black;
-      color: white;
-      cursor: pointer;
-    }
-    .left-panel input[type="checkbox"] {
-      margin-right: 5px;
-    }
-    .calendar {
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-    .right-panel {
-      flex: 1;
-    }
-    .timeline {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      color: #555;
-    }
-    .day-box {
-      display: flex;
-      align-items: center;
-      border: 1px solid #000;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      padding: 10px;
-      background: #fff;
-    }
-    .day-box .day {
-      width: 60px;
-      font-weight: bold;
-    }
-    .day-box .content {
-      flex: 1;
-      color: #555;
-      cursor: pointer;
-    }
-    .day-box input {
-      width: 100%;
-      padding: 5px;
-      font-size: 14px;
-    }
-    #test-button {
-      margin: 20px;
-      padding: 10px 20px;
-      background: darkgreen;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/906/906334.png" alt="logo" width="30">
-      <h1>Schedle</h1>
-    </div>
-    <input type="text" placeholder="Поиск">
-    <div class="profile">
-      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="notifications" width="25">
-      <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" alt="profile" width="30">
-    </div>
-  </header>
-  <div class="container">
-    <div class="sidebar">
-      <button>Друзья 0</button>
-      <button>Мероприятия</button>
-      <button>Чаты</button>
-      <input type="text" placeholder="Поиск в друзьях">
-      <button>+ Создать группу</button>
-      <button>Заявки в друзья</button>
-      <p>Друзей не найдено</p>
-    </div>
-    <div class="main">
-      <div class="left-panel">
-        <button>✏️ Редактировать расписание</button>
-        <div class="calendar">
-          <strong>Месяц&nbsp;&nbsp;Год</strong>
-          <table>
-            <tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr>
-            <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
-            <tr><td><b>8</b></td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
-          </table>
-        </div>
-        <button>Создать мероприятие</button>
-        <button>Добавить событие</button>
-        <div>
-          <label><input type="checkbox"> Показать только личные события</label><br>
-          <label><input type="checkbox"> Показать только события с друзьями</label><br>
-          <label><input type="checkbox"> Скрыть рабочие/учебные дела</label>
-        </div>
-      </div>
-      <div class="right-panel">
-        <div class="timeline">
-          <span>6:00</span><span>12:00</span><span>18:00</span><span>00:00</span><span>6:00</span>
-        </div>
-        <div class="day-box"><div class="day">1 пн</div><div class="content" data-day="1">нет событий на день</div></div>
-        <div class="day-box"><div class="day">2 вт</div><div class="content" data-day="2">нет событий на день</div></div>
-        <div class="day-box"><div class="day">3 ср</div><div class="content" data-day="3">нет событий на день</div></div>
-        <div class="day-box"><div class="day">4 чт</div><div class="content" data-day="4">нет событий на день</div></div>
-        <div class="day-box"><div class="day">5 пт</div><div class="content" data-day="5">нет событий на день</div></div>
-        <div class="day-box"><div class="day">6 сб</div><div class="content" data-day="6">нет событий на день</div></div>
-        <div class="day-box"><div class="day">7 вс</div><div class="content" data-day="7">нет событий на день</div></div>
-        <div class="day-box"><div class="day">8 пн</div><div class="content" data-day="8">нет событий на день</div></div>
-        <div class="day-box"><div class="day">9 вт</div><div class="content" data-day="9">нет событий на день</div></div>
+{% extends 'base.html' %}
+{% load static %}
 
-        <button id="test-button">Тестовая кнопка</button>
-      </div>
+{% block title %}Schedle | Главная{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main_page.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_modal.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-page-container">
+    <nav class="main-page-nav">
+        <button class="nav-tab-button active" data-tab="friends">Друзья 0</button> {# TODO: Update count dynamically #}
+        <button class="nav-tab-button" data-tab="events">Мероприятия</button>
+        <button class="nav-tab-button" data-tab="chats">Чаты</button>
+    </nav>
+
+    <div class="main-page-content-wrapper">
+        <!-- Left Column -->
+        <aside class="main-page-left-column">
+            <div class="friend-search-container">
+                <input type="text" placeholder="🔍 Поиск в друзьях" class="friend-search-input">
+            </div>
+            <button class="action-button-mainpage create-group-button">
+                <span class="icon-plus-mainpage">+</span> Создать группу
+            </button>
+            <button class="action-button-mainpage friend-requests-button">
+                <span class="icon-users-mainpage">👥</span> Заявки в друзья
+            </button>
+            <div class="friends-list-placeholder">
+                <p>Друзей не найдено</p> {# TODO: Populate dynamically #}
+            </div>
+
+            <!-- Small Calendar Section -->
+            <div class="small-calendar-container">
+                <div class="calendar-header-mainpage small-calendar-header">
+                    <div class="month-year-display">
+                        <span id="currentSmallMonth">Месяц</span> <span id="currentSmallYear">Год</span>
+                    </div>
+                    <div class="calendar-nav-buttons">
+                        <button id="prevSmallMonthBtn">&lt;</button>
+                        <button id="nextSmallMonthBtn">&gt;</button>
+                    </div>
+                </div>
+                <table class="calendar-grid-mainpage small-calendar-grid">
+                    <thead>
+                        <tr>
+                            <th>ПН</th><th>ВТ</th><th>СР</th><th>ЧТ</th><th>ПТ</th><th>СБ</th><th>ВС</th>
+                        </tr>
+                    </thead>
+                    <tbody id="smallCalendarDaysBody">
+                        {# Small calendar days will be populated by JavaScript #}
+                    </tbody>
+                </table>
+            </div>
+             <button class="action-button-mainpage view-schedule-button" id="viewScheduleBtn">
+                🗓️ Просмотреть/Редактировать Расписание
+            </button>
+            <button class="action-button-mainpage create-event-general-button" id="createEventGeneralBtn">
+                ➕ Создать новое событие
+            </button>
+        </aside>
+        <div class="resizer" id="resizer-left-center"></div>
+        
+        <!-- Center Column (Main Content - initially might be empty or show other tab content) -->
+        <main class="main-page-center-column">
+            <!-- This area will be for general content, or can be hidden/resized
+                 when timeline view is active if timeline takes full space -->
+            <p>Центральная колонка. Содержимое будет зависеть от выбранной вкладки или действия.</p>
+            
+        </main>
+        <div class="resizer" id="resizer-center-right"></div>
+
+        <!-- Right Column (Timeline View) -->
+        <aside class="main-page-right-column" id="timelineViewContainer">
+            <!-- Timeline will be dynamically generated here by JavaScript -->
+            <!-- Example of how it might look (structure from image) -->
+            <!--
+            <div class="timeline-day-entry">
+                <div class="timeline-day-label">1 ПН</div>
+                <div class="timeline-day-content">
+                    <div class="timeline-event-placeholder">Нет событий на день</div>
+                </div>
+            </div>
+            -->
+        </aside>
     </div>
-  </div>
+</div>
+
+<!-- Profile Modal (Preserved) -->
+<div class="modal" id="profileModal" style="display: none;">
+    <div class="modal-content"> {# Ensure .modal-content wraps the actual content for sizing #}
+        <div class="modal-header">
+            <h2 class="modal-title">Профиль</h2>
+            <button class="close-button" id="profileModalCloseButton">&times;</button>
+        </div>
+        
+        <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="profile-view-main-info">
+                {% if user_profile.profile_picture %}
+                    <img src="{{ user_profile.profile_picture.url }}" alt="Фото профиля" class="profile-photo-display">
+                {% else %}
+                    <img src="{% static 'images/default_avatar.png' %}" alt="Фото профиля" class="profile-photo-display" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="profile-photo-default-circle"></div>
+                {% endif %}
+                <div class="profile-text-info">
+                    <p class="profile-name">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="profile-username">@{{ user.username }}</p>
+                    <p class="profile-email">{{ user.email }}</p>
+                </div>
+                <a href="#" id="editProfileLink" class="edit-profile-link">✏️ Изменить профиль</a>
+            </div>
+            
+            <div id="profileEditForm" style="display: none;">
+                <h4>Редактировать основную информацию</h4>
+                <div class="profile-edit-field">
+                    <label for="profile_pic_input">Фото профиля:</label>
+                    <input type="file" name="profile_picture" accept="image/*" id="profile_pic_input">
+                </div>
+                <div class="profile-edit-field">
+                    <label for="first_name_input">Имя:</label>
+                    <input type="text" value="{{ user.first_name }}" name="first_name" id="first_name_input">
+                </div>
+                <div class="profile-edit-field">
+                    <label for="last_name_input">Фамилия:</label>
+                    <input type="text" value="{{ user.last_name }}" name="last_name" id="last_name_input">
+                </div>
+                <div class="profile-edit-field">
+                    <label for="email_input">Email:</label>
+                    <input type="email" value="{{ user.email }}" name="email" id="email_input">
+                </div>
+            </div>
+
+            <div class="profile-section-divider">Конфиденциальность</div>
+            <div class="profile-settings-list">
+                <div class="profile-field">
+                    <span>Кто видит личное расписание</span>
+                    <a href="#" class="profile-field-value" data-setting="privacy_schedule_visibility">{{ user_profile.get_privacy_schedule_visibility_display }}</a>
+                </div>
+                <div class="profile-field">
+                    <span>Кто может приглашать на мероприятия</span>
+                    <a href="#" class="profile-field-value" data-setting="privacy_can_invite_to_event">{{ user_profile.get_privacy_can_invite_to_event_display }}</a>
+                </div>
+                <div class="profile-field">
+                    <span>Кто может отправлять сообщения</span>
+                    <a href="#" class="profile-field-value" data-setting="privacy_can_send_message">{{ user_profile.get_privacy_can_send_message_display }}</a>
+                </div>
+                <div class="profile-field">
+                    <span>Кто видит фото профиля</span>
+                    <a href="#" class="profile-field-value" data-setting="privacy_profile_photo_visibility">{{ user_profile.get_privacy_profile_photo_visibility_display }}</a>
+                </div>
+            </div>
+            
+            <div id="privacyEditForm" style="display: none;">
+                <h4>Редактировать настройки конфиденциальности</h4>
+                <div class="profile-edit-field">
+                    <label for="id_privacy_schedule_visibility">Кто видит личное расписание:</label>
+                    <select name="privacy_schedule_visibility" id="id_privacy_schedule_visibility">
+                        {% for value, text in user_profile.PRIVACY_CHOICES %}
+                        <option value="{{ value }}" {% if user_profile.privacy_schedule_visibility == value %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="profile-edit-field">
+                    <label for="id_privacy_can_invite_to_event">Кто может приглашать на мероприятия:</label>
+                    <select name="privacy_can_invite_to_event" id="id_privacy_can_invite_to_event">
+                         {% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}
+                        <option value="{{ value }}" {% if user_profile.privacy_can_invite_to_event == value %}selected{% endif %}>{{ text }}</option>
+                        {% endif %}{% endfor %}
+                    </select>
+                </div>
+                <div class="profile-edit-field">
+                    <label for="id_privacy_can_send_message">Кто может отправлять сообщения:</label>
+                    <select name="privacy_can_send_message" id="id_privacy_can_send_message">
+                        {% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}
+                        <option value="{{ value }}" {% if user_profile.privacy_can_send_message == value %}selected{% endif %}>{{ text }}</option>
+                        {% endif %}{% endfor %}
+                    </select>
+                </div>
+                <div class="profile-edit-field">
+                    <label for="id_privacy_profile_photo_visibility">Кто видит фото профиля:</label>
+                    <select name="privacy_profile_photo_visibility" id="id_privacy_profile_photo_visibility">
+                        {% for value, text in user_profile.PRIVACY_CHOICES %}
+                        <option value="{{ value }}" {% if user_profile.privacy_profile_photo_visibility == value %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="profile-section-divider">Остальное</div>
+            <div class="profile-settings-list">
+                <div class="profile-field">
+                    <span>Язык интерфейса</span>
+                    <a href="#" class="profile-field-value" data-setting="interface_language">{{ user_profile.interface_language }}</a>
+                </div>
+            </div>
+            
+            <div id="languageEditForm" style="display:none;">
+              <h4>Редактировать язык интерфейса</h4>
+               <div class="profile-edit-field">
+                    <label for="id_interface_language">Язык интерфейса:</label>
+                    <select name="interface_language" id="id_interface_language">
+                        <option value="Русский" {% if user_profile.interface_language == "Русский" %}selected{% endif %}>Русский</option>
+                        <option value="English" {% if user_profile.interface_language == "English" %}selected{% endif %}>English</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <button type="submit" id="saveProfileButton" class="action-button" style="display:none;">Сохранить изменения</button>
+                <a href="{% url 'logout' %}" class="profile-action">Выйти из аккаунта</a>
+                <a href="#" class="profile-action danger">Удалить аккаунт</a> {# TODO: Implement delete account functionality #}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Event Modal (for creating/editing events) -->
+<div class="modal" id="eventModal" style="display: none;">
+    <div class="modal-content"> {# Ensure .modal-content wraps the actual content for sizing #}
+        <div class="modal-header">
+            <h2 class="modal-title" id="eventModalTitle">Создать событие</h2>
+            <button class="close-button" id="eventModalCloseButton">&times;</button>
+        </div>
+        <form method="POST" id="eventForm"> 
+            {% csrf_token %}
+            <input type="hidden" name="event_id" id="event_id">
+            
+            <div class="profile-edit-field">
+                <label for="id_Title">Название события:</label>
+                {{ event_form.Title }}
+            </div>
+            <div class="profile-edit-field">
+                <label for="id_StartTime">Время начала:</label>
+                {{ event_form.StartTime }}
+            </div>
+            <div class="profile-edit-field">
+                <label for="id_EndTime">Время окончания:</label>
+                {{ event_form.EndTime }}
+            </div>
+            <div class="profile-edit-field">
+                <label for="id_Description">Описание:</label>
+                {{ event_form.Description }}
+            </div>
+            <div class="profile-edit-field">
+                <label for="id_event_type">Тип события:</label>
+                {{ event_form.event_type }}
+            </div>
+            <div class="profile-edit-field">
+                <label for="id_Colour">Цвет (hex):</label>
+                {{ event_form.Colour }}
+            </div>
+            <div class="profile-actions" style="margin-top: 20px;">
+                <button type="submit" class="action-button">Сохранить событие</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
   <script>
-    function loadEvents() {
-      document.querySelectorAll('.content').forEach(content => {
-        const day = content.dataset.day;
-        const saved = localStorage.getItem('event_' + day);
-        if (saved) {
-          content.innerText = saved;
+    document.addEventListener('DOMContentLoaded', () => {
+        // Profile modal functionality (Preserved)
+        const profileButton = document.getElementById('headerProfileIcon');
+        const profileModal = document.getElementById('profileModal');
+        const profileModalCloseButton = document.getElementById('profileModalCloseButton');
+        const editProfileLink = document.getElementById('editProfileLink');
+        const profileViewMainInfo = document.querySelector('.profile-view-main-info');
+        const profileEditForm = document.getElementById('profileEditForm');
+        const privacyEditForm = document.getElementById('privacyEditForm');
+        const languageEditForm = document.getElementById('languageEditForm');
+        const saveProfileButton = document.getElementById('saveProfileButton');
+
+        if (profileButton) {
+            profileButton.addEventListener('click', () => {
+                if (profileModal) profileModal.style.display = 'flex'; // Use flex for centering
+                if (profileViewMainInfo) profileViewMainInfo.style.display = ''; 
+                if (profileEditForm) profileEditForm.style.display = 'none';
+                if (privacyEditForm) privacyEditForm.style.display = 'none';
+                if (languageEditForm) languageEditForm.style.display = 'none';
+                if (saveProfileButton) saveProfileButton.style.display = 'none';
+                if (editProfileLink) editProfileLink.textContent = '✏️ Изменить профиль';
+                document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
+            });
         }
-      });
-    }
+        if (profileModalCloseButton) {
+            profileModalCloseButton.addEventListener('click', () => {
+                if (profileModal) profileModal.style.display = 'none';
+            });
+        }
+        if (editProfileLink) {
+            editProfileLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isEditing = profileEditForm && profileEditForm.style.display !== 'none';
+                if (isEditing) {
+                    if (profileViewMainInfo) profileViewMainInfo.style.display = '';
+                    if (profileEditForm) profileEditForm.style.display = 'none';
+                    if (privacyEditForm) privacyEditForm.style.display = 'none';
+                    if (languageEditForm) languageEditForm.style.display = 'none';
+                    if (saveProfileButton) saveProfileButton.style.display = 'none';
+                    editProfileLink.textContent = '✏️ Изменить профиль';
+                    document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
+                } else {
+                    if (profileViewMainInfo) profileViewMainInfo.style.display = 'none';
+                    if (profileEditForm) profileEditForm.style.display = 'block';
+                    if (privacyEditForm) privacyEditForm.style.display = 'block';
+                    if (languageEditForm) languageEditForm.style.display = 'block';
+                    if (saveProfileButton) saveProfileButton.style.display = 'block';
+                    editProfileLink.textContent = '↩️ Отмена';
+                    document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = 'none');
+                }
+            });
+        }
 
-    function setupEditableContent() {
-      document.querySelectorAll('.content').forEach(content => {
-        content.addEventListener('click', () => {
-          const currentText = content.innerText;
-          const input = document.createElement('input');
-          input.value = currentText;
-          content.innerHTML = '';
-          content.appendChild(input);
-          input.focus();
+        // Small Calendar Functionality (NEW)
+        const currentSmallMonthEl = document.getElementById('currentSmallMonth');
+        const currentSmallYearEl = document.getElementById('currentSmallYear');
+        const smallCalendarDaysBodyEl = document.getElementById('smallCalendarDaysBody');
+        const prevSmallMonthBtn = document.getElementById('prevSmallMonthBtn');
+        const nextSmallMonthBtn = document.getElementById('nextSmallMonthBtn');
+        let currentSmallCalendarDate = new Date(); // Separate date object for small calendar
 
-          const save = () => {
-            const newText = input.value || 'нет событий на день';
-            content.innerText = newText;
-            const day = content.dataset.day;
-            localStorage.setItem('event_' + day, newText);
-          };
+        let selectedStartDate = null;
+        let selectedEndDate = null;
 
-          input.addEventListener('blur', save);
-          input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') input.blur();
-          });
-        });
-      });
-    }
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+                            "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadEvents();
-      setupEditableContent();
+        function renderSmallCalendar() {
+            const year = currentSmallCalendarDate.getFullYear();
+            const month = currentSmallCalendarDate.getMonth();
 
-      document.getElementById('test-button').addEventListener('click', () => {
-        alert('Кнопка работает!');
-      });
+            if (currentSmallMonthEl) currentSmallMonthEl.textContent = monthNames[month];
+            if (currentSmallYearEl) currentSmallYearEl.textContent = year;
+            
+            if (!smallCalendarDaysBodyEl) return;
+            smallCalendarDaysBodyEl.innerHTML = ''; 
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let startingDay = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            let date = 1;
+            let nextMonthDate = 1;
+
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    cell.classList.add('calendar-day-mainpage'); // Can reuse some styling
+                    const dateNumberSpan = document.createElement('span');
+                    dateNumberSpan.classList.add('date-number');
+
+                    let cellDateStr = '';
+                    if (i === 0 && j < startingDay) {
+                        dateNumberSpan.textContent = daysInPrevMonth - startingDay + j + 1;
+                        cell.classList.add('other-month');
+                    } else if (date > daysInMonth) {
+                        dateNumberSpan.textContent = nextMonthDate++;
+                        cell.classList.add('other-month');
+                    } else {
+                        dateNumberSpan.textContent = date;
+                        if (date === new Date().getDate() && year === new Date().getFullYear() && month === new Date().getMonth()) {
+                            cell.classList.add('today-mainpage');
+                        }
+                        cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                        cell.dataset.date = cellDateStr;
+                        
+                        // Highlight selected dates
+                        if (selectedStartDate && cellDateStr === selectedStartDate) cell.classList.add('selected-start');
+                        if (selectedEndDate && cellDateStr === selectedEndDate) cell.classList.add('selected-end');
+                        if (selectedStartDate && selectedEndDate && cellDateStr > selectedStartDate && cellDateStr < selectedEndDate) {
+                            cell.classList.add('selected-range');
+                        }
+
+                        cell.addEventListener('click', function() {
+                            const clickedDate = this.dataset.date;
+                            if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+                                // Start new selection or restart after range is complete
+                                selectedStartDate = clickedDate;
+                                selectedEndDate = null;
+                                console.log("Selected start:", selectedStartDate);
+                            } else if (selectedStartDate && !selectedEndDate) {
+                                // If start is selected, select end date
+                                if (clickedDate < selectedStartDate) { // If end is before start, make clicked the new start
+                                    selectedEndDate = selectedStartDate;
+                                    selectedStartDate = clickedDate;
+                                } else {
+                                    selectedEndDate = clickedDate;
+                                }
+                                console.log("Selected end:", selectedEndDate);
+                                // Optionally, automatically generate timeline here if you want it after 2 clicks
+                                // generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate)); 
+                            }
+                            renderSmallCalendar(); // Re-render to show selection highlights
+                        });
+                        date++;
+                    }
+                    cell.appendChild(dateNumberSpan); // Only add date number, no event wrapper
+                    row.appendChild(cell);
+                }
+                smallCalendarDaysBodyEl.appendChild(row);
+                if (date > daysInMonth && i >= Math.floor((startingDay + daysInMonth -1) / 7) ) break;
+            }
+            // No event fetching for small calendar, it's for navigation/selection
+        }
+
+        if (prevSmallMonthBtn) {
+            prevSmallMonthBtn.addEventListener('click', () => {
+                currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() - 1);
+                renderSmallCalendar();
+            });
+        }
+        if (nextSmallMonthBtn) {
+            nextSmallMonthBtn.addEventListener('click', () => {
+                currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() + 1);
+                renderSmallCalendar();
+            });
+        }
+        if (smallCalendarDaysBodyEl) { // Initial render if element exists
+             renderSmallCalendar();
+        }
+
+        // Timeline View Generation (NEW - Placeholder, to be expanded)
+        const viewScheduleButton = document.getElementById('viewScheduleBtn');
+        const timelineViewContainer = document.getElementById('timelineViewContainer');
+        const centerColumnEl = document.querySelector('.main-page-center-column'); // Get center column
+        const resizerCenterRightEl = document.getElementById('resizer-center-right'); // Get resizer
+
+        function generateTimelineView(startDate, endDate) {
+            if (!timelineViewContainer) return;
+            timelineViewContainer.innerHTML = ''; 
+
+            if (!startDate || !endDate) {
+                alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре.");
+                const todayForTimeline = new Date();
+                const sevenDaysLaterForTimeline = new Date();
+                sevenDaysLaterForTimeline.setDate(todayForTimeline.getDate() + 6);
+                startDate = todayForTimeline;
+                endDate = sevenDaysLaterForTimeline;
+            }
+            
+            // Hide center column and its resizer, make timeline (right column) visible and effectively expand
+            if (centerColumnEl) centerColumnEl.style.display = 'none';
+            if (resizerCenterRightEl) resizerCenterRightEl.style.display = 'none';
+            if (timelineViewContainer) timelineViewContainer.style.display = 'flex'; // Ensure it's flex if it was display:none before
+
+            let currentDate = new Date(startDate); 
+
+            while (currentDate <= endDate) {
+                const dayEntry = document.createElement('div');
+                dayEntry.classList.add('timeline-day-entry');
+
+                const dayLabel = document.createElement('div');
+                dayLabel.classList.add('timeline-day-label');
+                const dayNamesShort = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+                dayLabel.textContent = `${currentDate.getDate()} ${dayNamesShort[currentDate.getDay()]}`;
+                dayLabel.dataset.date = currentDate.toISOString().split('T')[0]; // Store date for click
+
+                dayLabel.addEventListener('click', function() {
+                    openEventModal(this.dataset.date); // Create event for this day
+                });
+                
+                const dayContent = document.createElement('div');
+                dayContent.classList.add('timeline-day-content');
+                
+                // Store the date on the dayContent element for easy access on click (REMOVING THIS LISTENER)
+                // dayContent.dataset.date = currentDate.toISOString().split('T')[0]; 
+                // dayContent.addEventListener('click', function(e) {
+                //     if (e.target === this) { 
+                //         openEventModal(this.dataset.date);
+                //     }
+                // });
+
+                dayEntry.appendChild(dayLabel);
+                dayEntry.appendChild(dayContent);
+                timelineViewContainer.appendChild(dayEntry);
+
+                // Fetch and display events for this specific day
+                fetchAndDisplayEventsForTimelineDay(currentDate, dayContent);
+
+                currentDate.setDate(currentDate.getDate() + 1); 
+            }
+        }
+
+        async function fetchAndDisplayEventsForTimelineDay(dateObj, dayContentElement) {
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth() + 1; // JS months are 0-indexed
+            const day = dateObj.getDate();
+
+            dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Загрузка событий...</div>'; // Loading state
+
+            try {
+                const response = await fetch(`/get_day_events/${year}/${month}/${day}/`);
+                if (!response.ok) {
+                    console.error(`Failed to fetch events for ${year}-${month}-${day}:`, response.status);
+                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder" style="color: red;">Ошибка загрузки событий</div>';
+                    return;
+                }
+                const events = await response.json();
+
+                if (events.length === 0) {
+                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Нет событий на день</div>';
+                    return;
+                }
+
+                dayContentElement.innerHTML = ''; // Clear loading/placeholder
+
+                let eventTopOffset = 0; 
+                const eventHeight = 22; 
+                const eventMargin = 2; 
+
+                events.forEach(event => {
+                    console.log(`Processing Event: ${event.title} for day ${dateObj.toDateString()}`); // DEBUG
+                    console.log(`  Event color from server: '${event.color}'`); // ADDED: Log the fetched color
+                    const eventItem = document.createElement('div');
+                    eventItem.classList.add('timeline-event-item'); 
+                    eventItem.style.backgroundColor = event.color || '#777'; // CHANGED: Brighter fallback color
+                    
+                    const originalEventStart = new Date(event.start);
+                    const originalEventEnd = new Date(event.end);
+
+                    // Determine actual start and end times for *this specific day* (dateObj)
+                    let dayBoundaryStart = new Date(dateObj); // This is the specific day being rendered
+                    dayBoundaryStart.setHours(0, 0, 0, 0);
+                    let dayBoundaryEnd = new Date(dateObj);
+                    dayBoundaryEnd.setHours(23, 59, 59, 999);
+
+                    // Effective start time for rendering on this day
+                    let displayStartTimeOnDay = originalEventStart > dayBoundaryStart ? originalEventStart : dayBoundaryStart;
+                    // Effective end time for rendering on this day
+                    let displayEndTimeOnDay = originalEventEnd < dayBoundaryEnd ? originalEventEnd : dayBoundaryEnd;
+
+                    // If event doesn't actually fall on this day after clamping, skip
+                    if (displayStartTimeOnDay > displayEndTimeOnDay) {
+                        console.log(`  Event ${event.title} SKIPPED for ${dateObj.toDateString()}: displayStartTimeOnDay > displayEndTimeOnDay`); // DEBUG
+                        return; 
+                    }
+                    
+                    const isAllDayForThisCell = (originalEventStart <= dayBoundaryStart && originalEventEnd >= dayBoundaryEnd);
+                    console.log(`  Original Times: Start=${originalEventStart.toISOString()}, End=${originalEventEnd.toISOString()}`); // DEBUG
+                    console.log(`  Day Boundaries: Start=${dayBoundaryStart.toISOString()}, End=${dayBoundaryEnd.toISOString()}`); // DEBUG
+                    console.log(`  Display Times on Day: Start=${displayStartTimeOnDay.toISOString()}, End=${displayEndTimeOnDay.toISOString()}`); // DEBUG
+                    console.log(`  Is All Day for this cell: ${isAllDayForThisCell}`); // DEBUG
+
+                    // Calculate LTRB for proportional display using displayStartTimeOnDay and displayEndTimeOnDay
+                    const dayTotalMinutes = 24 * 60;
+
+                    let eventStartMinutesOnDay = (displayStartTimeOnDay.getHours() * 60) + displayStartTimeOnDay.getMinutes();
+                    let eventEndMinutesOnDay = (displayEndTimeOnDay.getHours() * 60) + displayEndTimeOnDay.getMinutes();
+                    
+                    // If displayEndTimeOnDay is 23:59:59.xxx, consider its end minute as 1440 for width calculation
+                    if (displayEndTimeOnDay.getHours() === 23 && displayEndTimeOnDay.getMinutes() === 59 && displayEndTimeOnDay.getSeconds() === 59) {
+                        eventEndMinutesOnDay = dayTotalMinutes;
+                    }
+
+                    const eventDurationMinutesOnDay = Math.max(0, eventEndMinutesOnDay - eventStartMinutesOnDay);
+                    console.log(`  Event Minutes on Day: Start=${eventStartMinutesOnDay}, End=${eventEndMinutesOnDay}, Duration=${eventDurationMinutesOnDay}`); // DEBUG
+
+                    if (eventDurationMinutesOnDay > 0 || isAllDayForThisCell) { 
+                        let currentLeftPercentage, currentWidthPercentage;
+                        if (isAllDayForThisCell) {
+                             eventItem.style.left = '0%';
+                             eventItem.style.width = '100%';
+                             currentLeftPercentage = 0; currentWidthPercentage = 100;
+                        } else {
+                            currentLeftPercentage = (eventStartMinutesOnDay / dayTotalMinutes) * 100;
+                            currentWidthPercentage = (eventDurationMinutesOnDay / dayTotalMinutes) * 100;
+                            eventItem.style.left = `${currentLeftPercentage}%`;
+                            eventItem.style.width = `${Math.max(currentWidthPercentage, 2)}%`;
+                        }
+                        console.log(`  Applied Styles: Left=${eventItem.style.left}, Width=${eventItem.style.width}, Top=${eventTopOffset}px, BG=${event.color || '#777'}`); // DEBUG
+                        
+                        eventItem.style.top = `${eventTopOffset}px`;
+                        eventTopOffset += eventHeight + eventMargin; 
+
+                        const eventTime = document.createElement('span');
+                        eventTime.classList.add('timeline-event-time');
+                        if (isAllDayForThisCell) {
+                            eventTime.textContent = "Весь день";
+                        } else {
+                            const startTimeStr = displayStartTimeOnDay.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const endTimeStr = displayEndTimeOnDay.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            eventTime.textContent = `${startTimeStr} - ${endTimeStr}`;
+                        }
+
+                        const eventTitle = document.createElement('span');
+                        eventTitle.classList.add('timeline-event-title');
+                        eventTitle.textContent = event.title;
+
+                        eventItem.appendChild(eventTitle);
+                        eventItem.appendChild(eventTime);
+                        
+                        eventItem.dataset.eventId = event.id;
+                        eventItem.addEventListener('click', () => {
+                            openEventModalForEdit(event.id);
+                        });
+                        dayContentElement.appendChild(eventItem);
+                    } else {
+                        console.log(`  Event ${event.title} NOT RENDERED for ${dateObj.toDateString()} (duration ${eventDurationMinutesOnDay}, not all day)`); // DEBUG
+                    }
+                });
+
+            } catch (error) {
+                console.error(`Error fetching or displaying events for ${year}-${month}-${day}:`, error);
+                dayContentElement.innerHTML = '<div class="timeline-event-placeholder" style="color: red;">Ошибка при отображении событий</div>';
+            }
+        }
+
+        if (viewScheduleButton) {
+            viewScheduleButton.addEventListener('click', () => {
+                if (selectedStartDate && selectedEndDate) {
+                    generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
+                } else if (selectedStartDate) {
+                    alert("Пожалуйста, выберите и конечную дату на календаре.");
+                    generateTimelineView(new Date(selectedStartDate), new Date(selectedStartDate)); 
+                } else {
+                    alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре или хотя бы начальную.");
+                }
+            });
+        }
+        
+        // TODO: Add logic to show center column and resizer again when navigating away from timeline view
+        // For example, when clicking other main nav tabs.
+        // E.g., document.querySelectorAll('.nav-tab-button').forEach(tab => {
+        //    tab.addEventListener('click', () => {
+        //        if (centerColumnEl) centerColumnEl.style.display = 'flex'; // or 'block' depending on original
+        //        if (resizerCenterRightEl) resizerCenterRightEl.style.display = 'flex'; // or 'block'
+        //        if (timelineViewContainer) timelineViewContainer.innerHTML = ''; // Clear timeline
+        //    });
+        // });
+        
+        // OLD Calendar Functionality (fetchAndDisplayEvents, openEventModal, openEventModalForEdit)
+        // This will need to be adapted or removed if the main large calendar is gone.
+        // For now, I will comment it out to avoid conflicts, assuming the new timeline view
+        // will have its own event display and interaction logic.
+
+        /*
+        const currentMonthEl = document.getElementById('currentMonth'); // These might be null now
+        const currentYearEl = document.getElementById('currentYear');
+        const calendarDaysBodyEl = document.getElementById('calendarDaysBody');
+        const prevMonthBtn = document.getElementById('prevMonthBtn');
+        const nextMonthBtn = document.getElementById('nextMonthBtn');
+        const timelineMonthHeaderEl = document.getElementById('timelineMonthHeader'); 
+        let currentDate = new Date(); // This was for the large calendar
+
+        function renderCalendar() { ... } // Old renderCalendar
+        async function fetchAndDisplayEvents(year, month_one_indexed, calendarCells) { ... } // Old event fetching
+        // Event Modal functions (openEventModal, openEventModalForEdit) might still be useful
+        // but will be triggered from the timeline view, not the old large calendar.
+        */
+
+        // Event Modal Functionality (Preserved, but trigger points will change)
+        const eventModal = document.getElementById('eventModal');
+        const eventModalCloseButton = document.getElementById('eventModalCloseButton');
+        const eventForm = document.getElementById('eventForm');
+        const eventModalTitle = document.getElementById('eventModalTitle');
+        const eventIdInput = document.getElementById('event_id');
+
+        if (eventForm) {
+            eventForm.addEventListener('submit', async function(e) {
+                e.preventDefault(); // Prevent default page reload
+
+                const formData = new FormData(this);
+                const url = this.action;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken') // Ensure CSRF token is sent
+                        }
+                    });
+
+                    // After form submission (create or edit), close modal and refresh timeline
+                    if (eventModal) eventModal.style.display = 'none';
+
+                    // Response.url will be the URL after redirects. If it's the main page, 
+                    // it implies a successful operation (or at least one that the backend processed and redirected from).
+                    // A more robust check would involve the backend returning JSON for AJAX calls.
+                    if (response.redirected && response.url.endsWith('/')) { // Assuming main_page is at root '/'
+                         // We should check if the redirect URL is the main page URL
+                        const mainPageUrl = new URL('{% url "main_page" %}', window.location.origin).href;
+                        if (response.url === mainPageUrl) {
+                             if (selectedStartDate && selectedEndDate) {
+                                console.log("Refreshing timeline for", selectedStartDate, "to", selectedEndDate);
+                                generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
+                            } else if (selectedStartDate) { // If only start was selected (e.g. single day view)
+                                console.log("Refreshing timeline for single day", selectedStartDate);
+                                generateTimelineView(new Date(selectedStartDate), new Date(selectedStartDate));
+                            }
+                        } else {
+                            // If redirected elsewhere, or an error occurred that didn't redirect to main_page
+                            // a full page reload might be what the backend intended for that case.
+                            // Or, ideally backend returns JSON error messages for AJAX.
+                            console.warn("Form submission redirected to an unexpected URL or failed without redirect to main page.", response);
+                            // Potentially reload or show a generic error to user
+                        }
+                    } else if (response.ok) {
+                        // This case might be hit if the backend is changed to return JSON on success for AJAX
+                        // and NOT redirect. For now, we assume redirects.
+                        console.log("Form submitted successfully (non-redirect response).");
+                         if (selectedStartDate && selectedEndDate) {
+                            generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
+                        }
+                    } else {
+                        // Handle HTTP errors if the fetch itself failed or backend returned an error status without redirect
+                        console.error("Event form submission failed:", response.status, response.statusText);
+                        alert("Ошибка при сохранении события. Проверьте консоль.");
+                    }
+                } catch (error) {
+                    console.error("Error submitting event form:", error);
+                    alert("Ошибка при отправке данных события.");
+                }
+            });
+        }
+
+        function openEventModal(dateString = null) {
+            // ... (definition as before, but ensure dateString can be passed from timeline)
+            if (!eventModal || !eventForm) return;
+            eventForm.reset(); 
+            if (eventIdInput) eventIdInput.value = ''; 
+            if (eventModalTitle) eventModalTitle.textContent = 'Создать событие';
+            
+            if (dateString) { // dateString should be YYYY-MM-DD
+                const startTimeField = eventForm.querySelector('[name="StartTime"]');
+                if (startTimeField) {
+                    startTimeField.value = `${dateString}T09:00`; 
+                }
+            }
+            eventForm.action = "{% url 'create_event' %}";
+            eventModal.style.display = 'block';
+        }
+
+        async function openEventModalForEdit(eventId) {
+            // ... (definition as before)
+            if (!eventModal || !eventForm) return;
+            // ... rest of the function
+             try {
+                const response = await fetch(`/get_event_details/${eventId}/`);
+                if (!response.ok) {
+                    console.error("Failed to fetch event details:", response.status);
+                    alert("Не удалось загрузить данные события.");
+                    return;
+                }
+                const eventData = await response.json();
+
+                eventForm.reset();
+                if (eventModalTitle) eventModalTitle.textContent = 'Редактировать событие';
+                if (eventIdInput) eventIdInput.value = eventData.id;
+
+                const titleField = eventForm.querySelector('[name="Title"]');
+                const startTimeField = eventForm.querySelector('[name="StartTime"]');
+                const endTimeField = eventForm.querySelector('[name="EndTime"]');
+                const descriptionField = eventForm.querySelector('[name="Description"]');
+                const eventTypeField = eventForm.querySelector('[name="event_type"]');
+                const colourField = eventForm.querySelector('[name="Colour"]');
+
+                if (titleField) titleField.value = eventData.Title;
+                if (startTimeField) startTimeField.value = eventData.StartTime.substring(0, 16);
+                if (endTimeField) endTimeField.value = eventData.EndTime.substring(0, 16);
+                if (descriptionField) descriptionField.value = eventData.Description;
+                if (eventTypeField) eventTypeField.value = eventData.event_type;
+                if (colourField) colourField.value = eventData.Colour;
+
+                eventForm.action = `/edit_event/${eventData.id}/`;
+                eventModal.style.display = 'block';
+
+            } catch (error) {
+                console.error("Error opening event modal for edit:", error);
+                alert("Ошибка при открытии формы редактирования события.");
+            }
+        }
+        
+        if (eventModalCloseButton) {
+            eventModalCloseButton.addEventListener('click', () => {
+                if (eventModal) eventModal.style.display = 'none';
+            });
+        }
+
+        // Resizer Functionality (Modified)
+        const leftColumn = document.querySelector('.main-page-left-column');
+        const centerColumn = document.querySelector('.main-page-center-column');
+        const rightColumn = document.querySelector('.main-page-right-column');
+        const resizerLeftCenter = document.getElementById('resizer-left-center');
+        const resizerCenterRight = document.getElementById('resizer-center-right');
+
+        function makeResizable(resizer, prevElement, nextElement) {
+            let x = 0;
+            let prevElementWidth = 0;
+            let nextElementWidth = 0;
+
+            const mouseDownHandler = function (e) {
+                x = e.clientX;
+                prevElementWidth = prevElement.getBoundingClientRect().width;
+                
+                if (resizer.id === 'resizer-center-right') {
+                    nextElementWidth = nextElement.getBoundingClientRect().width;
+                } else {
+                    nextElementWidth = 0; 
+                }
+                
+                resizer.classList.add('active');
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            };
+
+            const mouseMoveHandler = function (e) {
+                const dx = e.clientX - x;
+                const newPrevWidth = prevElementWidth + dx;
+                const prevMinWidth = parseInt(getComputedStyle(prevElement).minWidth);
+                
+                if (resizer.id === 'resizer-center-right') { 
+                    const newNextWidth = nextElementWidth - dx;
+                    const nextMinWidth = parseInt(getComputedStyle(nextElement).minWidth);
+                    if (newPrevWidth >= prevMinWidth && newNextWidth >= nextMinWidth) {
+                        prevElement.style.flexBasis = `${newPrevWidth}px`;
+                        nextElement.style.flexBasis = `${newNextWidth}px`;
+                    }
+                } else { 
+                    if (newPrevWidth >= prevMinWidth) {
+                        prevElement.style.flexBasis = `${newPrevWidth}px`;
+                    }
+                }
+            };
+
+            const mouseUpHandler = function () {
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+            };
+
+            if (resizer) {
+                 resizer.addEventListener('mousedown', mouseDownHandler);
+            }
+        }
+
+        if (leftColumn && centerColumn && resizerLeftCenter) {
+            makeResizable(resizerLeftCenter, leftColumn, centerColumn);
+        }
+        if (centerColumn && rightColumn && resizerCenterRight) {
+            makeResizable(resizerCenterRight, centerColumn, rightColumn);
+        }
+
+        const createEventGeneralButton = document.getElementById('createEventGeneralBtn');
+        if (createEventGeneralButton) {
+            createEventGeneralButton.addEventListener('click', () => {
+                openEventModal(); // Open modal without pre-filling date
+            });
+        }
     });
   </script>
-</body>
-</html>
+{% endblock %}

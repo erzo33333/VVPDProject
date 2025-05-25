@@ -1,19 +1,120 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Вход</title>
-</head>
-<body>
-    <h2>Вход</h2>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Войти</button>
-    </form>
+{% extends 'base.html' %}
 
-    <p>Ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
-</body>
-</html>
+{% block title %}Schedle | Вход{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #111;
+        color: #fff;
+    }
+    
+    header {
+        display: none;
+    }
+    
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .auth-box {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 400px;
+        color: #000;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #000;
+    }
+    
+    .auth-button {
+        width: 100%;
+        padding: 12px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .auth-links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 14px;
+    }
+    
+    .auth-links a {
+        color: #0066cc;
+        text-decoration: none;
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h1 class="auth-title">Вход</h1>
+        
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Телефон или адрес эл. почты" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Введите пароль" required>
+            </div>
+            <div class="auth-links">
+                <a href="{% url 'password_reset' %}">Забыли адрес/телефон или пароль?</a>
+                <a href="{% url 'register' %}">Создать аккаунт</a>
+            </div>
+            <button type="submit" class="auth-button">ВОЙТИ</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

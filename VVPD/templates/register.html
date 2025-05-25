@@ -1,15 +1,172 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Регистрация</title>
-</head>
-<body>
-    <h2>Регистрация</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Зарегистрироваться</button>
-    </form>
-    <p>Уже зарегистрированы? <a href="{% url 'login' %}">Войти</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Schedle | Регистрация{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #111;
+        color: #fff;
+    }
+    
+    header {
+        display: none;
+    }
+    
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .auth-box {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 400px;
+        color: #000;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #000;
+    }
+    
+    .form-hint {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
+    }
+    
+    .auth-button {
+        width: 100%;
+        padding: 12px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .auth-links {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+        font-size: 14px;
+    }
+    
+    .auth-links a {
+        color: #0066cc;
+        text-decoration: none;
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 0.5rem;
+    }
+    .field-error {
+        color: #dc3545;
+        font-size: 0.8rem;
+        list-style: none;
+        padding: 0;
+        margin: 0.2rem 0 0 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h1 class="auth-title">Регистрация</h1>
+        
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            {# Render non-password fields first #}
+            {% for field in form %}
+                {% if field.name != 'password' and field.name != 'password2' %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        <input type="{{ field.field.widget.input_type }}" 
+                               name="{{ field.name }}" 
+                               placeholder="{{ field.label }}" 
+                               {% if field.field.required %}required{% endif %}>
+                        {% if field.help_text %}
+                            <div class="form-hint">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <ul class="field-error">
+                                {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            {# Render password field #}
+            <div class="form-group">
+                {{ form.password.label_tag }}
+                <input type="password" name="password" placeholder="Придумайте пароль" required>
+                <div class="form-hint">Минимум 8 символов (стандарт Django)</div> {# Or adjust based on your validators #}
+                {% if form.password.errors %}
+                    <ul class="field-error">
+                        {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            {# Render password2 field #}
+            <div class="form-group">
+                {{ form.password2.label_tag }}
+                <input type="password" name="password2" placeholder="Повторите пароль" required>
+                {% if form.password2.errors %}
+                    <ul class="field-error">
+                        {% for error in form.password2.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="auth-button">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+        </form>
+        
+        <div class="auth-links">
+            <a href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
