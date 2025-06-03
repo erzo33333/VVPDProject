@@ -4,99 +4,103 @@
 {% block title %}Schedle | Главная{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/main_page.css' %}">
+<link rel="stylesheet" href="{% static 'css/main_page_v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile_modal.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="main-page-container">
-    <nav class="main-page-nav">
-        <button class="nav-tab-button active" data-tab="friends">Друзья 0</button> {# TODO: Update count dynamically #}
-        <button class="nav-tab-button" data-tab="events">Мероприятия</button>
-        <button class="nav-tab-button" data-tab="chats">Чаты</button>
-    </nav>
+<div class="main-layout-container">
 
-    <div class="main-page-content-wrapper">
-        <!-- Left Column -->
-        <aside class="main-page-left-column">
-            <div class="friend-search-container">
-                <input type="text" placeholder="🔍 Поиск в друзьях" class="friend-search-input">
+    <!-- Left Panel: Friends and Chats -->
+    <aside class="left-panel">
+        <div class="left-panel-tabs">
+            <button class="tab-link active" onclick="openTab(event, 'friends-tab-content')">Друзья</button>
+            <button class="tab-link" onclick="openTab(event, 'chats-tab-content')">Чаты</button>
+        </div>
+
+        <div id="friends-tab-content" class="tab-content" style="display: block;">
+            <div class="panel-search-container">
+                <input type="text" id="friendSearchInput" placeholder="🔍 Поиск в друзьях" class="panel-search-input">
             </div>
-            <button class="action-button-mainpage create-group-button">
+            <button class="action-button panel-button create-group-btn">
                 <span class="icon-plus-mainpage">+</span> Создать группу
             </button>
-            <button class="action-button-mainpage friend-requests-button">
-                <span class="icon-users-mainpage">👥</span> Заявки в друзья
-            </button>
-            <div class="friends-list-placeholder">
-                <p>Друзей не найдено</p> {# TODO: Populate dynamically #}
+            <a href="{% url 'friend_requests' %}" class="action-button panel-button friend-requests-btn">
+                <span class="icon-users-mainpage">👥</span> Заявки в друзья <span class="badge" id="friendRequestsCount"></span>
+            </a>
+            <div class="friend-list-container" id="friendListContainer">
+                <p class="placeholder-text">Загрузка друзей...</p>
             </div>
+        </div>
 
-            <!-- Small Calendar Section -->
-            <div class="small-calendar-container">
-                <div class="calendar-header-mainpage small-calendar-header">
-                    <div class="month-year-display">
-                        <span id="currentSmallMonth">Месяц</span> <span id="currentSmallYear">Год</span>
-                    </div>
-                    <div class="calendar-nav-buttons">
-                        <button id="prevSmallMonthBtn">&lt;</button>
-                        <button id="nextSmallMonthBtn">&gt;</button>
-                    </div>
-                </div>
-                <table class="calendar-grid-mainpage small-calendar-grid">
-                    <thead>
-                        <tr>
-                            <th>ПН</th><th>ВТ</th><th>СР</th><th>ЧТ</th><th>ПТ</th><th>СБ</th><th>ВС</th>
-                        </tr>
-                    </thead>
-                    <tbody id="smallCalendarDaysBody">
-                        {# Small calendar days will be populated by JavaScript #}
-                    </tbody>
-                </table>
+        <div id="chats-tab-content" class="tab-content">
+            <div class="panel-search-container">
+                <input type="text" id="chatSearchInput" placeholder="🔍 Поиск в чатах" class="panel-search-input">
             </div>
-             <button class="action-button-mainpage view-schedule-button" id="viewScheduleBtn">
-                🗓️ Просмотреть/Редактировать Расписание
-            </button>
-            <button class="action-button-mainpage create-event-general-button" id="createEventGeneralBtn">
-                ➕ Создать новое событие
-            </button>
-        </aside>
-        <div class="resizer" id="resizer-left-center"></div>
+            <div class="chat-list-container" id="chatListContainer">
+                <p class="placeholder-text">Загрузка чатов...</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Center Panel: Schedule Editing Tools (WAS Right Panel) -->
+    <aside class="center-panel editing-panel">
+        <h4>Редактировать расписание</h4>
         
-        <!-- Center Column (Main Content - initially might be empty or show other tab content) -->
-        <main class="main-page-center-column">
-            <!-- This area will be for general content, or can be hidden/resized
-                 when timeline view is active if timeline takes full space -->
-            <p>Центральная колонка. Содержимое будет зависеть от выбранной вкладки или действия.</p>
-            
-        </main>
-        <div class="resizer" id="resizer-center-right"></div>
-
-        <!-- Right Column (Timeline View) -->
-        <aside class="main-page-right-column" id="timelineViewContainer">
-            <!-- Timeline will be dynamically generated here by JavaScript -->
-            <!-- Example of how it might look (structure from image) -->
-            <!--
-            <div class="timeline-day-entry">
-                <div class="timeline-day-label">1 ПН</div>
-                <div class="timeline-day-content">
-                    <div class="timeline-event-placeholder">Нет событий на день</div>
+        <div class="small-calendar-container">
+            <div class="calendar-header-mainpage small-calendar-header">
+                <div class="month-year-display">
+                    <span id="currentSmallMonth">Месяц</span> <span id="currentSmallYear">Год</span>
+                </div>
+                <div class="calendar-nav-buttons">
+                    <button id="prevSmallMonthBtn">&lt;</button>
+                    <button id="nextSmallMonthBtn">&gt;</button>
                 </div>
             </div>
-            -->
-        </aside>
+            <table class="calendar-grid-mainpage small-calendar-grid">
+                <thead><tr><th>ПН</th><th>ВТ</th><th>СР</th><th>ЧТ</th><th>ПТ</th><th>СБ</th><th>ВС</th></tr></thead>
+                <tbody id="smallCalendarDaysBody"></tbody>
+            </table>
+        </div>
+
+        <div class="event-filters-container">
+            <h5>Фильтры:</h5>
+            <div><input type="checkbox" id="filterPersonal" name="filterPersonal" checked> <label for="filterPersonal">Личные события</label></div>
+            <div><input type="checkbox" id="filterFriends" name="filterFriends" checked> <label for="filterFriends">События с друзьями</label></div>
+            <div><input type="checkbox" id="filterWork" name="filterWork" checked> <label for="filterWork">Рабочие/учебные дела</label></div>
+        </div>
+
+        <div class="event-form-container">
+            <h5 id="eventFormTitle">Создать событие</h5>
+            <form method="POST" id="eventFormInline" action="{% url 'create_event' %}">
+                {% csrf_token %}
+                <input type="hidden" name="event_id" id="inline_event_id">
+                <div class="form-field"><label for="id_Title">Название события:</label>{{ event_form.Title }}</div>
+                <div class="form-field"><label for="id_StartTime">Время начала:</label>{{ event_form.StartTime }}</div>
+                <div class="form-field"><label for="id_EndTime">Время окончания:</label>{{ event_form.EndTime }}</div>
+                <div class="form-field"><label for="id_Description">Описание:</label>{{ event_form.Description }}</div>
+                <div class="form-field"><label for="id_event_type">Тип события:</label>{{ event_form.event_type }}</div>
+                <div class="form-field"><label for="id_Colour">Цвет (hex):</label>{{ event_form.Colour }}</div>
+                <div class="form-actions"><button type="submit" class="action-button">Сохранить событие</button></div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Right Panel: Timeline Calendar (WAS Center Panel) -->
+    <div class="timeline-section">
+        <div id="timelineHeader" class="timeline-header-row"></div>
+        <main class="right-panel timeline-panel" id="timelineViewContainer">
+            <p class="placeholder-text">Календарь-таймлайн загружается...</p>
+        </main>
     </div>
+
 </div>
 
 <!-- Profile Modal (Preserved) -->
 <div class="modal" id="profileModal" style="display: none;">
-    <div class="modal-content"> {# Ensure .modal-content wraps the actual content for sizing #}
-        <div class="modal-header">
-            <h2 class="modal-title">Профиль</h2>
-            <button class="close-button" id="profileModalCloseButton">&times;</button>
-        </div>
-        
-        <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+    <div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title">Профиль</h2><button class="close-button" id="profileModalCloseButton">&times;</button></div>
+        <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data" id="profileForm">
             {% csrf_token %}
             <div class="profile-view-main-info">
                 {% if user_profile.profile_picture %}
@@ -112,148 +116,76 @@
                 </div>
                 <a href="#" id="editProfileLink" class="edit-profile-link">✏️ Изменить профиль</a>
             </div>
-            
             <div id="profileEditForm" style="display: none;">
                 <h4>Редактировать основную информацию</h4>
-                <div class="profile-edit-field">
-                    <label for="profile_pic_input">Фото профиля:</label>
-                    <input type="file" name="profile_picture" accept="image/*" id="profile_pic_input">
-                </div>
-                <div class="profile-edit-field">
-                    <label for="first_name_input">Имя:</label>
-                    <input type="text" value="{{ user.first_name }}" name="first_name" id="first_name_input">
-                </div>
-                <div class="profile-edit-field">
-                    <label for="last_name_input">Фамилия:</label>
-                    <input type="text" value="{{ user.last_name }}" name="last_name" id="last_name_input">
-                </div>
-                <div class="profile-edit-field">
-                    <label for="email_input">Email:</label>
-                    <input type="email" value="{{ user.email }}" name="email" id="email_input">
-                </div>
+                <div class="profile-edit-field"><label for="profile_pic_input">Фото профиля:</label><input type="file" name="profile_picture" accept="image/*" id="profile_pic_input"></div>
+                <div class="profile-edit-field"><label for="first_name_input">Имя:</label><input type="text" value="{{ user.first_name }}" name="first_name" id="first_name_input"></div>
+                <div class="profile-edit-field"><label for="last_name_input">Фамилия:</label><input type="text" value="{{ user.last_name }}" name="last_name" id="last_name_input"></div>
+                <div class="profile-edit-field"><label for="email_input">Email:</label><input type="email" value="{{ user.email }}" name="email" id="email_input"></div>
             </div>
-
             <div class="profile-section-divider">Конфиденциальность</div>
             <div class="profile-settings-list">
-                <div class="profile-field">
-                    <span>Кто видит личное расписание</span>
-                    <a href="#" class="profile-field-value" data-setting="privacy_schedule_visibility">{{ user_profile.get_privacy_schedule_visibility_display }}</a>
-                </div>
-                <div class="profile-field">
-                    <span>Кто может приглашать на мероприятия</span>
-                    <a href="#" class="profile-field-value" data-setting="privacy_can_invite_to_event">{{ user_profile.get_privacy_can_invite_to_event_display }}</a>
-                </div>
-                <div class="profile-field">
-                    <span>Кто может отправлять сообщения</span>
-                    <a href="#" class="profile-field-value" data-setting="privacy_can_send_message">{{ user_profile.get_privacy_can_send_message_display }}</a>
-                </div>
-                <div class="profile-field">
-                    <span>Кто видит фото профиля</span>
-                    <a href="#" class="profile-field-value" data-setting="privacy_profile_photo_visibility">{{ user_profile.get_privacy_profile_photo_visibility_display }}</a>
-                </div>
+                <div class="profile-field"><span>Кто видит личное расписание</span><a href="#" class="profile-field-value" data-setting="privacy_schedule_visibility">{{ user_profile.get_privacy_schedule_visibility_display }}</a></div>
+                <div class="profile-field"><span>Кто может приглашать на мероприятия</span><a href="#" class="profile-field-value" data-setting="privacy_can_invite_to_event">{{ user_profile.get_privacy_can_invite_to_event_display }}</a></div>
+                <div class="profile-field"><span>Кто может отправлять сообщения</span><a href="#" class="profile-field-value" data-setting="privacy_can_send_message">{{ user_profile.get_privacy_can_send_message_display }}</a></div>
+                <div class="profile-field"><span>Кто видит фото профиля</span><a href="#" class="profile-field-value" data-setting="privacy_profile_photo_visibility">{{ user_profile.get_privacy_profile_photo_visibility_display }}</a></div>
             </div>
-            
             <div id="privacyEditForm" style="display: none;">
                 <h4>Редактировать настройки конфиденциальности</h4>
-                <div class="profile-edit-field">
-                    <label for="id_privacy_schedule_visibility">Кто видит личное расписание:</label>
-                    <select name="privacy_schedule_visibility" id="id_privacy_schedule_visibility">
-                        {% for value, text in user_profile.PRIVACY_CHOICES %}
-                        <option value="{{ value }}" {% if user_profile.privacy_schedule_visibility == value %}selected{% endif %}>{{ text }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="profile-edit-field">
-                    <label for="id_privacy_can_invite_to_event">Кто может приглашать на мероприятия:</label>
-                    <select name="privacy_can_invite_to_event" id="id_privacy_can_invite_to_event">
-                         {% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}
-                        <option value="{{ value }}" {% if user_profile.privacy_can_invite_to_event == value %}selected{% endif %}>{{ text }}</option>
-                        {% endif %}{% endfor %}
-                    </select>
-                </div>
-                <div class="profile-edit-field">
-                    <label for="id_privacy_can_send_message">Кто может отправлять сообщения:</label>
-                    <select name="privacy_can_send_message" id="id_privacy_can_send_message">
-                        {% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}
-                        <option value="{{ value }}" {% if user_profile.privacy_can_send_message == value %}selected{% endif %}>{{ text }}</option>
-                        {% endif %}{% endfor %}
-                    </select>
-                </div>
-                <div class="profile-edit-field">
-                    <label for="id_privacy_profile_photo_visibility">Кто видит фото профиля:</label>
-                    <select name="privacy_profile_photo_visibility" id="id_privacy_profile_photo_visibility">
-                        {% for value, text in user_profile.PRIVACY_CHOICES %}
-                        <option value="{{ value }}" {% if user_profile.privacy_profile_photo_visibility == value %}selected{% endif %}>{{ text }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <div class="profile-edit-field"><label for="id_privacy_schedule_visibility">Кто видит личное расписание:</label><select name="privacy_schedule_visibility" id="id_privacy_schedule_visibility">{% for value, text in user_profile.PRIVACY_CHOICES %}<option value="{{ value }}" {% if user_profile.privacy_schedule_visibility == value %}selected{% endif %}>{{ text }}</option>{% endfor %}</select></div>
+                <div class="profile-edit-field"><label for="id_privacy_can_invite_to_event">Кто может приглашать на мероприятия:</label><select name="privacy_can_invite_to_event" id="id_privacy_can_invite_to_event">{% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}<option value="{{ value }}" {% if user_profile.privacy_can_invite_to_event == value %}selected{% endif %}>{{ text }}</option>{% endif %}{% endfor %}</select></div>
+                <div class="profile-edit-field"><label for="id_privacy_can_send_message">Кто может отправлять сообщения:</label><select name="privacy_can_send_message" id="id_privacy_can_send_message">{% for value, text in user_profile.PRIVACY_CHOICES %}{% if value != 'only_me' %}<option value="{{ value }}" {% if user_profile.privacy_can_send_message == value %}selected{% endif %}>{{ text }}</option>{% endif %}{% endfor %}</select></div>
+                <div class="profile-edit-field"><label for="id_privacy_profile_photo_visibility">Кто видит фото профиля:</label><select name="privacy_profile_photo_visibility" id="id_privacy_profile_photo_visibility">{% for value, text in user_profile.PRIVACY_CHOICES %}<option value="{{ value }}" {% if user_profile.privacy_profile_photo_visibility == value %}selected{% endif %}>{{ text }}</option>{% endfor %}</select></div>
             </div>
-
             <div class="profile-section-divider">Остальное</div>
-            <div class="profile-settings-list">
-                <div class="profile-field">
-                    <span>Язык интерфейса</span>
-                    <a href="#" class="profile-field-value" data-setting="interface_language">{{ user_profile.interface_language }}</a>
-                </div>
-            </div>
-            
+            <div class="profile-settings-list"><div class="profile-field"><span>Язык интерфейса</span><a href="#" class="profile-field-value" data-setting="interface_language">{{ user_profile.interface_language }}</a></div></div>
             <div id="languageEditForm" style="display:none;">
               <h4>Редактировать язык интерфейса</h4>
-               <div class="profile-edit-field">
-                    <label for="id_interface_language">Язык интерфейса:</label>
-                    <select name="interface_language" id="id_interface_language">
-                        <option value="Русский" {% if user_profile.interface_language == "Русский" %}selected{% endif %}>Русский</option>
-                        <option value="English" {% if user_profile.interface_language == "English" %}selected{% endif %}>English</option>
-                    </select>
-                </div>
+               <div class="profile-edit-field"><label for="id_interface_language">Язык интерфейса:</label><select name="interface_language" id="id_interface_language"><option value="Русский" {% if user_profile.interface_language == "Русский" %}selected{% endif %}>Русский</option><option value="English" {% if user_profile.interface_language == "English" %}selected{% endif %}>English</option></select></div>
             </div>
-            
-            <div class="profile-actions">
-                <button type="submit" id="saveProfileButton" class="action-button" style="display:none;">Сохранить изменения</button>
-                <a href="{% url 'logout' %}" class="profile-action">Выйти из аккаунта</a>
-                <a href="#" class="profile-action danger">Удалить аккаунт</a> {# TODO: Implement delete account functionality #}
-            </div>
+            <div class="profile-actions"><button type="submit" id="saveProfileButton" class="action-button" style="display:none;">Сохранить изменения</button><a href="{% url 'logout' %}" class="profile-action">Выйти из аккаунта</a><a href="#" class="profile-action danger" id="deleteAccountLink">Удалить аккаунт</a></div>
         </form>
     </div>
 </div>
 
-<!-- Event Modal (for creating/editing events) -->
+<!-- Event Create/Edit Modal -->
 <div class="modal" id="eventModal" style="display: none;">
-    <div class="modal-content"> {# Ensure .modal-content wraps the actual content for sizing #}
+    <div class="modal-content event-modal-content">
         <div class="modal-header">
             <h2 class="modal-title" id="eventModalTitle">Создать событие</h2>
             <button class="close-button" id="eventModalCloseButton">&times;</button>
         </div>
-        <form method="POST" id="eventForm"> 
+        <form method="POST" id="eventModalForm" action="{% url 'create_event' %}">
             {% csrf_token %}
-            <input type="hidden" name="event_id" id="event_id">
-            
-            <div class="profile-edit-field">
-                <label for="id_Title">Название события:</label>
-                {{ event_form.Title }}
+            <input type="hidden" name="event_id" id="modal_event_id">
+            <div class="form-field">
+                <label for="modal_id_Title">Название события:</label>
+                {{ event_form.Title }} <!-- Assuming event_form is available in context -->
             </div>
-            <div class="profile-edit-field">
-                <label for="id_StartTime">Время начала:</label>
+            <div class="form-field">
+                <label for="modal_id_StartTime">Время начала:</label>
                 {{ event_form.StartTime }}
             </div>
-            <div class="profile-edit-field">
-                <label for="id_EndTime">Время окончания:</label>
+            <div class="form-field">
+                <label for="modal_id_EndTime">Время окончания:</label>
                 {{ event_form.EndTime }}
             </div>
-            <div class="profile-edit-field">
-                <label for="id_Description">Описание:</label>
+            <div class="form-field">
+                <label for="modal_id_Description">Описание:</label>
                 {{ event_form.Description }}
             </div>
-            <div class="profile-edit-field">
-                <label for="id_event_type">Тип события:</label>
+            <div class="form-field">
+                <label for="modal_id_event_type">Тип события:</label>
                 {{ event_form.event_type }}
             </div>
-            <div class="profile-edit-field">
-                <label for="id_Colour">Цвет (hex):</label>
+            <div class="form-field">
+                <label for="modal_id_Colour">Цвет (hex):</label>
                 {{ event_form.Colour }}
             </div>
-            <div class="profile-actions" style="margin-top: 20px;">
-                <button type="submit" class="action-button">Сохранить событие</button>
+            <div class="form-actions modal-form-actions">
+                <button type="submit" class="action-button" id="saveEventModalButton">Сохранить</button>,
+                <button type="button" class="action-button-secondary" id="cancelEventModalButton">Отмена</button>
+                <button type="button" class="action-button-danger" id="deleteEventModalButton" style="display:none;">Удалить</button>
             </div>
         </form>
     </div>
@@ -262,628 +194,962 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Profile modal functionality (Preserved)
-        const profileButton = document.getElementById('headerProfileIcon');
-        const profileModal = document.getElementById('profileModal');
-        const profileModalCloseButton = document.getElementById('profileModalCloseButton');
-        const editProfileLink = document.getElementById('editProfileLink');
-        const profileViewMainInfo = document.querySelector('.profile-view-main-info');
-        const profileEditForm = document.getElementById('profileEditForm');
-        const privacyEditForm = document.getElementById('privacyEditForm');
-        const languageEditForm = document.getElementById('languageEditForm');
-        const saveProfileButton = document.getElementById('saveProfileButton');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Constants & Global Variables
+    const defaultAvatarUrl = "{% static 'images/default_avatar.png' %}";
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    const dayShortNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+    const EVENT_VERTICAL_DAY_HEIGHT_PX = 250; // REDUCED from 480
+    const KRASNOYARSK_TIMEZONE = 'Asia/Krasnoyarsk';
 
-        if (profileButton) {
-            profileButton.addEventListener('click', () => {
-                if (profileModal) profileModal.style.display = 'flex'; // Use flex for centering
-                if (profileViewMainInfo) profileViewMainInfo.style.display = ''; 
-                if (profileEditForm) profileEditForm.style.display = 'none';
-                if (privacyEditForm) privacyEditForm.style.display = 'none';
-                if (languageEditForm) languageEditForm.style.display = 'none';
-                if (saveProfileButton) saveProfileButton.style.display = 'none';
-                if (editProfileLink) editProfileLink.textContent = '✏️ Изменить профиль';
-                document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
-            });
+    let currentSmallCalendarDate = new Date();
+    let selectedStartDate = null;
+    let selectedEndDate = null;
+
+    // Helper function to get YYYY-MM-DD string in Krasnoyarsk Timezone
+    function getKrasnoyarskDateString(dateObj) {
+        return new Intl.DateTimeFormat('sv-SE', { timeZone: KRASNOYARSK_TIMEZONE }).format(dateObj);
+    }
+
+    // Helper function to convert UTC ISO string to YYYY-MM-DDTHH:MM for KRT display in input
+    function convertUTCToKRT_YYYYMMDDTHHMM(utcIsoString) {
+        if (!utcIsoString) return '';
+        const date = new Date(utcIsoString); // Parses as UTC
+
+        // Get KRT parts using Intl.DateTimeFormat, ensuring locale doesn't break YYYY-MM-DD or HH:MM
+        const krtYear = new Intl.DateTimeFormat('en', { year: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
+        const krtMonth = new Intl.DateTimeFormat('en', { month: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
+        const krtDay = new Intl.DateTimeFormat('en', { day: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
+        // For hour, use a locale that reliably gives 24-hour format, like 'en-GB'
+        let krtHour = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: KRASNOYARSK_TIMEZONE }).format(date);
+        const krtMinute = new Intl.DateTimeFormat('en-GB', { minute: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
+
+        // Intl.DateTimeFormat might return '24' for hour at midnight, input type datetime-local expects '00'
+        if (krtHour === '24') {
+            krtHour = '00';
         }
-        if (profileModalCloseButton) {
-            profileModalCloseButton.addEventListener('click', () => {
-                if (profileModal) profileModal.style.display = 'none';
-            });
+        
+        return `${krtYear}-${krtMonth}-${krtDay}T${String(krtHour).padStart(2,'0')}:${String(krtMinute).padStart(2,'0')}`;
+    }
+
+    // DOM Elements
+    const timelineViewContainer = document.getElementById('timelineViewContainer'); // Now right panel
+    const eventFormInline = document.getElementById('eventFormInline'); // Now in center panel
+    const eventFormTitle = document.getElementById('eventFormTitle');
+    const inlineEventIdInput = document.getElementById('inline_event_id');
+    
+    const currentSmallMonthEl = document.getElementById('currentSmallMonth');
+    const currentSmallYearEl = document.getElementById('currentSmallYear');
+    const smallCalendarDaysBodyEl = document.getElementById('smallCalendarDaysBody');
+    const prevSmallMonthBtn = document.getElementById('prevSmallMonthBtn');
+    const nextSmallMonthBtn = document.getElementById('nextSmallMonthBtn');
+
+    const friendSearchInput = document.getElementById('friendSearchInput');
+    const chatSearchInput = document.getElementById('chatSearchInput');
+    const friendListContainer = document.getElementById('friendListContainer');
+    const chatListContainer = document.getElementById('chatListContainer');
+
+    // Profile Modal Elements
+    const profileButton = document.getElementById('headerProfileIcon'); // Assumes this ID is on your header profile icon
+    const profileModal = document.getElementById('profileModal');
+    const profileModalCloseButton = document.getElementById('profileModalCloseButton');
+    const editProfileLink = document.getElementById('editProfileLink');
+    const profileForm = document.getElementById('profileForm'); // Added ID to form
+    const profileViewMainInfo = profileModal.querySelector('.profile-view-main-info');
+    const profileEditForm = document.getElementById('profileEditForm');
+    const privacyEditForm = document.getElementById('privacyEditForm');
+    const languageEditForm = document.getElementById('languageEditForm');
+    const saveProfileButton = document.getElementById('saveProfileButton');
+    const deleteAccountLink = document.getElementById('deleteAccountLink');
+
+    // Event Modal Elements (NEW)
+    const eventModal = document.getElementById('eventModal');
+    const eventModalTitle = document.getElementById('eventModalTitle');
+    const eventModalForm = document.getElementById('eventModalForm');
+    const modalEventIdInput = document.getElementById('modal_event_id');
+    const eventModalCloseButton = document.getElementById('eventModalCloseButton');
+    const saveEventModalButton = document.getElementById('saveEventModalButton');
+    const cancelEventModalButton = document.getElementById('cancelEventModalButton');
+    const deleteEventModalButton = document.getElementById('deleteEventModalButton');
+
+    // Tab switching logic for left panel
+    window.openTab = function(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "flex";
+        evt.currentTarget.className += " active";
+        if (tabName === 'friends-tab-content') { loadFriends(); }
+        if (tabName === 'chats-tab-content') { loadChats(); }
+    }
+
+    // --- Profile Modal Logic ---
+    if (profileButton) {
+        profileButton.addEventListener('click', () => {
+            profileModal.style.display = 'flex';
+            profileViewMainInfo.style.display = '';
+            profileEditForm.style.display = 'none';
+            privacyEditForm.style.display = 'none';
+            languageEditForm.style.display = 'none';
+            saveProfileButton.style.display = 'none';
+            editProfileLink.textContent = '✏️ Изменить профиль';
+            profileModal.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
+        });
+    }
+    if (profileModalCloseButton) {
+        profileModalCloseButton.addEventListener('click', () => profileModal.style.display = 'none');
+    }
+    if (editProfileLink) {
+        editProfileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isEditing = profileEditForm.style.display !== 'none';
+            profileViewMainInfo.style.display = isEditing ? '' : 'none';
+            profileEditForm.style.display = isEditing ? 'none' : 'block';
+            privacyEditForm.style.display = isEditing ? 'none' : 'block';
+            languageEditForm.style.display = isEditing ? 'none' : 'block';
+            saveProfileButton.style.display = isEditing ? 'none' : 'block';
+            editProfileLink.textContent = isEditing ? '✏️ Изменить профиль' : '↩️ Отмена';
+            profileModal.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = isEditing ? '' : 'none');
+        });
+    }
+    if (deleteAccountLink) {
+        deleteAccountLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.')) {
+                // Implement account deletion logic, likely a POST request to a specific URL
+                alert('Аккаунт удален (демонстрация).'); // Placeholder
+                window.location.href = '/'; // Redirect to home or login
+            }
+        });
+    }
+    // Add form submission logic if needed (e.g. AJAX for profileForm)
+
+
+    // --- Small Calendar Functionality ---
+    function renderSmallCalendar() {
+        const localYear = currentSmallCalendarDate.getFullYear();
+        const localMonth = currentSmallCalendarDate.getMonth();
+        if (currentSmallMonthEl) currentSmallMonthEl.textContent = monthNames[localMonth];
+        if (currentSmallYearEl) currentSmallYearEl.textContent = localYear;
+
+        const timelineHeaderMonthTitle = document.querySelector('#timelineHeader .timeline-month-title');
+        if (timelineHeaderMonthTitle) {
+            timelineHeaderMonthTitle.textContent = monthNames[localMonth];
         }
-        if (editProfileLink) {
-            editProfileLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                const isEditing = profileEditForm && profileEditForm.style.display !== 'none';
-                if (isEditing) {
-                    if (profileViewMainInfo) profileViewMainInfo.style.display = '';
-                    if (profileEditForm) profileEditForm.style.display = 'none';
-                    if (privacyEditForm) privacyEditForm.style.display = 'none';
-                    if (languageEditForm) languageEditForm.style.display = 'none';
-                    if (saveProfileButton) saveProfileButton.style.display = 'none';
-                    editProfileLink.textContent = '✏️ Изменить профиль';
-                    document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
-                } else {
-                    if (profileViewMainInfo) profileViewMainInfo.style.display = 'none';
-                    if (profileEditForm) profileEditForm.style.display = 'block';
-                    if (privacyEditForm) privacyEditForm.style.display = 'block';
-                    if (languageEditForm) languageEditForm.style.display = 'block';
-                    if (saveProfileButton) saveProfileButton.style.display = 'block';
-                    editProfileLink.textContent = '↩️ Отмена';
-                    document.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = 'none');
-                }
-            });
-        }
 
-        // Small Calendar Functionality (NEW)
-        const currentSmallMonthEl = document.getElementById('currentSmallMonth');
-        const currentSmallYearEl = document.getElementById('currentSmallYear');
-        const smallCalendarDaysBodyEl = document.getElementById('smallCalendarDaysBody');
-        const prevSmallMonthBtn = document.getElementById('prevSmallMonthBtn');
-        const nextSmallMonthBtn = document.getElementById('nextSmallMonthBtn');
-        let currentSmallCalendarDate = new Date(); // Separate date object for small calendar
+        if (!smallCalendarDaysBodyEl) return;
+        smallCalendarDaysBodyEl.innerHTML = '';
 
-        let selectedStartDate = null;
-        let selectedEndDate = null;
+        // Get KRT representation of the 1st of the current localMonth
+        const firstOfDisplayedMonthKRT = new Date(Date.UTC(localYear, localMonth, 1, 0, 0, 0 - (7*60*60*1000) )); // Rough UTC for KRT midnight
+        const krtYearForLogic = parseInt(new Intl.DateTimeFormat('en', { year: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(firstOfDisplayedMonthKRT));
+        const krtMonthForLogic = parseInt(new Intl.DateTimeFormat('en', { month: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(firstOfDisplayedMonthKRT)) -1; // 0-indexed
 
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-                            "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const firstDayOfMonthObject = new Date(krtYearForLogic, krtMonthForLogic, 1);
+        const firstDayOfMonthWeekday = firstDayOfMonthObject.toLocaleDateString('en-US', { weekday: 'long', timeZone: KRASNOYARSK_TIMEZONE });
+        // Convert weekday name to number (Mon=0...Sun=6) aligning with typical calendar grids
+        const dayNameToIndex = {'Monday':0, 'Tuesday':1, 'Wednesday':2, 'Thursday':3, 'Friday':4, 'Saturday':5, 'Sunday':6};
+        let startingDay = dayNameToIndex[firstDayOfMonthWeekday] !== undefined ? dayNameToIndex[firstDayOfMonthWeekday] : (new Date(localYear, localMonth, 1).getDay() + 6) % 7; // Fallback
 
-        function renderSmallCalendar() {
-            const year = currentSmallCalendarDate.getFullYear();
-            const month = currentSmallCalendarDate.getMonth();
+        const daysInMonth = new Date(krtYearForLogic, krtMonthForLogic + 1, 0).getDate();
+        const daysInPrevMonth = new Date(krtYearForLogic, krtMonthForLogic, 0).getDate();
 
-            if (currentSmallMonthEl) currentSmallMonthEl.textContent = monthNames[month];
-            if (currentSmallYearEl) currentSmallYearEl.textContent = year;
-            
-            if (!smallCalendarDaysBodyEl) return;
-            smallCalendarDaysBodyEl.innerHTML = ''; 
+        let dateCounter = 1;
+        let nextMonthDateCounter = 1;
 
-            const firstDayOfMonth = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            let startingDay = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            let date = 1;
-            let nextMonthDate = 1;
+        for (let i = 0; i < 6; i++) { // Max 6 weeks
+            const row = document.createElement('tr');
+            for (let j = 0; j < 7; j++) { // 7 days a week
+                const cell = document.createElement('td');
+                const dateNumberDiv = document.createElement('div');
+                dateNumberDiv.classList.add('date-number');
+                
+                let cellRepresentedDateObj; // JS Date object for the current cell
+                let cellDateKRTString;    // YYYY-MM-DD in KRT
 
-            for (let i = 0; i < 6; i++) {
-                const row = document.createElement('tr');
-                for (let j = 0; j < 7; j++) {
-                    const cell = document.createElement('td');
-                    cell.classList.add('calendar-day-mainpage'); // Can reuse some styling
-                    const dateNumberSpan = document.createElement('span');
-                    dateNumberSpan.classList.add('date-number');
-
-                    let cellDateStr = '';
-                    if (i === 0 && j < startingDay) {
-                        dateNumberSpan.textContent = daysInPrevMonth - startingDay + j + 1;
-                        cell.classList.add('other-month');
-                    } else if (date > daysInMonth) {
-                        dateNumberSpan.textContent = nextMonthDate++;
-                        cell.classList.add('other-month');
-                    } else {
-                        dateNumberSpan.textContent = date;
-                        if (date === new Date().getDate() && year === new Date().getFullYear() && month === new Date().getMonth()) {
-                            cell.classList.add('today-mainpage');
-                        }
-                        cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-                        cell.dataset.date = cellDateStr;
-                        
-                        // Highlight selected dates
-                        if (selectedStartDate && cellDateStr === selectedStartDate) cell.classList.add('selected-start');
-                        if (selectedEndDate && cellDateStr === selectedEndDate) cell.classList.add('selected-end');
-                        if (selectedStartDate && selectedEndDate && cellDateStr > selectedStartDate && cellDateStr < selectedEndDate) {
-                            cell.classList.add('selected-range');
-                        }
-
-                        cell.addEventListener('click', function() {
-                            const clickedDate = this.dataset.date;
-                            if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-                                // Start new selection or restart after range is complete
-                                selectedStartDate = clickedDate;
-                                selectedEndDate = null;
-                                console.log("Selected start:", selectedStartDate);
-                            } else if (selectedStartDate && !selectedEndDate) {
-                                // If start is selected, select end date
-                                if (clickedDate < selectedStartDate) { // If end is before start, make clicked the new start
-                                    selectedEndDate = selectedStartDate;
-                                    selectedStartDate = clickedDate;
-                                } else {
-                                    selectedEndDate = clickedDate;
-                                }
-                                console.log("Selected end:", selectedEndDate);
-                                // Optionally, automatically generate timeline here if you want it after 2 clicks
-                                // generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate)); 
-                            }
-                            renderSmallCalendar(); // Re-render to show selection highlights
-                        });
-                        date++;
+                if (i === 0 && j < startingDay) { // Previous month
+                    const prevMonthDay = daysInPrevMonth - startingDay + j + 1;
+                    dateNumberDiv.textContent = prevMonthDay;
+                    cell.classList.add('other-month');
+                    cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic - 1, prevMonthDay);
+                } else if (dateCounter > daysInMonth) { // Next month
+                    dateNumberDiv.textContent = nextMonthDateCounter;
+                    cell.classList.add('other-month');
+                    cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic + 1, nextMonthDateCounter);
+                    nextMonthDateCounter++;
+                } else { // Current month
+                    dateNumberDiv.textContent = dateCounter;
+                    cell.classList.add('current-month');
+                    cell.classList.add('calendar-day-mainpage'); 
+                    cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic, dateCounter);
+                    
+                    const todayKRTStr = getKrasnoyarskDateString(new Date());
+                    if (getKrasnoyarskDateString(cellRepresentedDateObj) === todayKRTStr) {
+                        cell.classList.add('today-mainpage');
                     }
-                    cell.appendChild(dateNumberSpan); // Only add date number, no event wrapper
-                    row.appendChild(cell);
+                    dateCounter++;
                 }
-                smallCalendarDaysBodyEl.appendChild(row);
-                if (date > daysInMonth && i >= Math.floor((startingDay + daysInMonth -1) / 7) ) break;
+                cellDateKRTString = getKrasnoyarskDateString(cellRepresentedDateObj);
+                cell.dataset.date = cellDateKRTString; // Store KRT date string
+                cell.appendChild(dateNumberDiv);
+
+                // Apply selection styles based on KRT strings
+                if (selectedStartDate && selectedEndDate) {
+                    if (cellDateKRTString >= selectedStartDate && cellDateKRTString <= selectedEndDate) {
+                        cell.classList.add('selected-range');
+                    }
+                }
+                if (cellDateKRTString === selectedStartDate) cell.classList.add('selected-start');
+                if (cellDateKRTString === selectedEndDate) cell.classList.add('selected-end');
+                
+                row.appendChild(cell);
             }
-            // No event fetching for small calendar, it's for navigation/selection
+            smallCalendarDaysBodyEl.appendChild(row);
+            if (dateCounter > daysInMonth && i >= Math.floor((startingDay + daysInMonth -1) / 7) ) break; 
+        }
+    }
+
+    if (prevSmallMonthBtn) prevSmallMonthBtn.addEventListener('click', () => { 
+        currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() - 1); 
+        selectedStartDate = null; // Clear selection from previous month
+        selectedEndDate = null;
+        renderSmallCalendar(); 
+        // Update timeline to show the new month
+        const year = currentSmallCalendarDate.getFullYear();
+        const month = currentSmallCalendarDate.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        generateTimelineView(firstDayOfMonth, lastDayOfMonth);
+    });
+
+    if (nextSmallMonthBtn) nextSmallMonthBtn.addEventListener('click', () => { 
+        currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() + 1); 
+        selectedStartDate = null; // Clear selection from previous month
+        selectedEndDate = null;
+        renderSmallCalendar(); 
+        // Update timeline to show the new month
+        const year = currentSmallCalendarDate.getFullYear();
+        const month = currentSmallCalendarDate.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        generateTimelineView(firstDayOfMonth, lastDayOfMonth);
+    });
+    
+    if (smallCalendarDaysBodyEl) {
+        smallCalendarDaysBodyEl.addEventListener('click', (e) => {
+            const targetCell = e.target.closest('td');
+            if (!targetCell || !targetCell.dataset.date) return;
+
+            const clickedDateStr = targetCell.dataset.date; // This is KRT YYYY-MM-DD
+
+            if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+                selectedStartDate = clickedDateStr; // Store KRT string
+                selectedEndDate = null; 
+            } else if (clickedDateStr < selectedStartDate) { 
+                selectedEndDate = selectedStartDate;
+                selectedStartDate = clickedDateStr; // Store KRT string
+            } else {
+                selectedEndDate = clickedDateStr; // Store KRT string
+            }
+            
+            renderSmallCalendar(); 
+            if (timelineViewContainer) {
+                 // Convert KRT date strings to Date objects representing KRT day boundaries
+                 // The Date objects will represent UTC moments equivalent to 00:00 KRT and 23:59 KRT
+                 const startForTimeline = new Date(selectedStartDate + "T00:00:00+07:00");
+                 const endForTimeline = selectedEndDate ? 
+                                      new Date(selectedEndDate + "T23:59:59.999+07:00") : 
+                                      new Date(selectedStartDate + "T23:59:59.999+07:00");
+                 console.log('Timeline RENDER: generateTimelineView called with KRT-derived Date objects. Selected KRT strings:', selectedStartDate, selectedEndDate);
+                 generateTimelineView(startForTimeline, endForTimeline);
+            }
+        });
+    }
+
+    // --- Timeline View Generation (Targets right panel) ---
+    async function generateTimelineView(startDate, endDate) {
+        if (!timelineViewContainer) {
+            console.error("timelineViewContainer is null or undefined!");
+            return;
+        }
+        console.log('generateTimelineView received raw startDate:', startDate, 'endDate:', endDate);
+
+        if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+            console.error("ERROR: startDate is not a valid Date object in generateTimelineView.", startDate);
+            timelineViewContainer.innerHTML = '<p class="placeholder-text">Ошибка: Неверная начальная дата.</p>';
+            return;
+        }
+        if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
+            console.error("ERROR: endDate is not a valid Date object in generateTimelineView.", endDate);
+            timelineViewContainer.innerHTML = '<p class="placeholder-text">Ошибка: Неверная конечная дата.</p>';
+            return;
         }
 
-        if (prevSmallMonthBtn) {
-            prevSmallMonthBtn.addEventListener('click', () => {
-                currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() - 1);
-                renderSmallCalendar();
+        timelineViewContainer.innerHTML = '<p class="placeholder-text">Загрузка дней...</p>';
+
+        let currentDate = new Date(startDate); // Use a copy to avoid modifying the passed-in startDate
+        currentDate.setHours(0, 0, 0, 0);     // Normalize to the beginning of the day
+
+        let tempEndDate = new Date(endDate);   // Use a copy
+        tempEndDate.setHours(23, 59, 59, 999); // Normalize to the end of the day for inclusive comparison
+
+        console.log('Normalized loop range: currentDate:', currentDate.toISOString(), 'tempEndDate:', tempEndDate.toISOString());
+
+        if (currentDate > tempEndDate) {
+            console.warn('Warning: currentDate is after tempEndDate. No days will be rendered.', currentDate, tempEndDate);
+            timelineViewContainer.innerHTML = '<p class="placeholder-text">Выбранный диапазон некорректен (начало после конца).</p>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        let dayRendered = false;
+
+        while (currentDate <= tempEndDate) {
+            dayRendered = true;
+            console.log('Rendering day in loop:', currentDate.toISOString().split('T')[0]);
+            
+            const dayDateForAPI = getKrasnoyarskDateString(currentDate); // KRT date string
+
+            const dayEntry = document.createElement('div');
+            dayEntry.classList.add('timeline-day-entry-vertical');
+            dayEntry.dataset.date = dayDateForAPI; // Store KRT date string
+
+            const dayLabelDiv = document.createElement('div');
+            dayLabelDiv.classList.add('day-label-main-vertical');
+            
+            const dateNumberSpan = document.createElement('span');
+            dateNumberSpan.classList.add('day-label-date-number');
+            dateNumberSpan.textContent = currentDate.getDate();
+
+            const dayNameSpan = document.createElement('span');
+            dayNameSpan.classList.add('day-label-day-name');
+            dayNameSpan.textContent = dayShortNames[currentDate.getDay()];
+
+            dayLabelDiv.appendChild(dateNumberSpan);
+            dayLabelDiv.appendChild(dayNameSpan);
+
+            dayLabelDiv.addEventListener('click', () => {
+                if (eventModalTitle) eventModalTitle.textContent = 'Создать событие';
+                if (eventModalForm) {
+                    eventModalForm.reset(); 
+                    eventModalForm.action = "{% url 'create_event' %}";
+                    const clickedDate = dayEntry.dataset.date;
+                    const startTimeField = eventModalForm.querySelector('[name="StartTime"]');
+                    const endTimeField = eventModalForm.querySelector('[name="EndTime"]');
+                    if (startTimeField) {
+                        startTimeField.value = clickedDate + 'T09:00'; 
+                    }
+                    if (endTimeField) {
+                        endTimeField.value = clickedDate + 'T10:00';
+                    }
+                    const colourFieldModal = eventModalForm.querySelector('[name="Colour"]');
+                    if (colourFieldModal) colourFieldModal.value = '#007bff';
+                }
+                if (modalEventIdInput) modalEventIdInput.value = ''; 
+                if (deleteEventModalButton) deleteEventModalButton.style.display = 'none';
+                openEventModal();
             });
-        }
-        if (nextSmallMonthBtn) {
-            nextSmallMonthBtn.addEventListener('click', () => {
-                currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() + 1);
-                renderSmallCalendar();
-            });
-        }
-        if (smallCalendarDaysBodyEl) { // Initial render if element exists
-             renderSmallCalendar();
-        }
 
-        // Timeline View Generation (NEW - Placeholder, to be expanded)
-        const viewScheduleButton = document.getElementById('viewScheduleBtn');
-        const timelineViewContainer = document.getElementById('timelineViewContainer');
-        const centerColumnEl = document.querySelector('.main-page-center-column'); // Get center column
-        const resizerCenterRightEl = document.getElementById('resizer-center-right'); // Get resizer
+            const dayBodyVertical = document.createElement('div');
+            dayBodyVertical.classList.add('timeline-day-body-vertical');
 
-        function generateTimelineView(startDate, endDate) {
-            if (!timelineViewContainer) return;
+            const eventArea = document.createElement('div');
+            eventArea.classList.add('event-area-vertical');
+
+            dayBodyVertical.appendChild(eventArea);
+
+            dayEntry.appendChild(dayLabelDiv);
+            dayEntry.appendChild(dayBodyVertical);
+            
+            fragment.appendChild(dayEntry);
+
+            // Pass only eventArea to fetchAndDisplayEventsForVerticalDay
+            // RENAME fetchAndDisplayEventsForVerticalDay to fetchAndDisplayEventsForDayRow
+            // Pass krtDateStrForAPI (dayDateForAPI) to fetchAndDisplayEventsForDayRow
+            await fetchAndDisplayEventsForDayRow(new Date(currentDate), eventArea, dayDateForAPI); 
+            
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        if (dayRendered) {
+            console.log('Clearing timelineViewContainer and appending new fragment.');
+            console.log('Fragment childElementCount before append:', fragment.childElementCount); // DEBUG LINE
             timelineViewContainer.innerHTML = ''; 
-
-            if (!startDate || !endDate) {
-                // This alert was removed in a previous step, user confirmed selection is required
-                // alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре.");
-                // Defaulting to a 7-day range if nothing is selected (or only start)
-                // This path should ideally not be hit if button logic requires selection.
-                const todayForTimeline = new Date();
-                const sevenDaysLaterForTimeline = new Date();
-                sevenDaysLaterForTimeline.setDate(todayForTimeline.getDate() + 6);
-                startDate = startDate || todayForTimeline; // Use provided startDate if available
-                endDate = endDate || sevenDaysLaterForTimeline; // Use provided endDate if available
-            }
-            
-            // Hide center column and its resizer, make timeline (right column) visible and effectively expand
-            if (centerColumnEl) centerColumnEl.style.display = 'none';
-            if (resizerCenterRightEl) resizerCenterRightEl.style.display = 'none';
-            if (timelineViewContainer) timelineViewContainer.style.display = 'flex';
-
-            let currentDate = new Date(startDate); 
-            currentDate.setHours(0,0,0,0); // Ensure currentDate starts at the beginning of the day
-            
-            let processingEndDate = new Date(endDate); 
-            processingEndDate.setHours(23, 59, 59, 999); // Set to end of the selected day for comparison
-
-            console.log(`Timeline loop: currentDate starts at ${currentDate.toISOString()}, processingEndDate is ${processingEndDate.toISOString()}`);
-
-            while (currentDate <= processingEndDate) {
-                const dayEntry = document.createElement('div');
-                dayEntry.classList.add('timeline-day-entry');
-
-                const dayLabel = document.createElement('div');
-                dayLabel.classList.add('timeline-day-label');
-                const dayNamesShort = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-                dayLabel.textContent = `${currentDate.getDate()} ${dayNamesShort[currentDate.getDay()]}`;
-                dayLabel.dataset.date = currentDate.toISOString().split('T')[0]; // Store date for click
-
-                dayLabel.addEventListener('click', function() {
-                    openEventModal(this.dataset.date); // Create event for this day
-                });
-                
-                const dayContent = document.createElement('div');
-                dayContent.classList.add('timeline-day-content');
-                
-                // Store the date on the dayContent element for easy access on click (REMOVING THIS LISTENER)
-                // dayContent.dataset.date = currentDate.toISOString().split('T')[0]; 
-                // dayContent.addEventListener('click', function(e) {
-                //     if (e.target === this) { 
-                //         openEventModal(this.dataset.date);
-                //     }
-                // });
-
-                dayEntry.appendChild(dayLabel);
-                dayEntry.appendChild(dayContent);
-                timelineViewContainer.appendChild(dayEntry);
-
-                // Fetch and display events for this specific day
-                // Pass a new Date object to avoid modification issues if currentDate is mutated elsewhere by async calls
-                fetchAndDisplayEventsForTimelineDay(new Date(currentDate), dayContent);
-
-                currentDate.setDate(currentDate.getDate() + 1); 
-                currentDate.setHours(0,0,0,0); // Ensure time is reset for the next iteration
-            }
+            timelineViewContainer.appendChild(fragment);
+            console.log('timelineViewContainer innerHTML after append:', timelineViewContainer.innerHTML); // DEBUG LINE
+        } else {
+            console.log('No days were rendered. currentDate might have been > tempEndDate initially or loop condition failed.');
+            timelineViewContainer.innerHTML = '<p class="placeholder-text">Нет событий для отображения в данном диапазоне.</p>'; // More specific message
         }
+    }
 
-        async function fetchAndDisplayEventsForTimelineDay(dateObj, dayContentElement) {
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth() + 1; // JS months are 0-indexed
-            const day = dateObj.getDate();
+    // RENAMED from fetchAndDisplayEventsForVerticalDay
+    async function fetchAndDisplayEventsForDayRow(dateObj, eventAreaElement, krtDateStrForAPI) {
+        // const dateStr = dateObj.toISOString().split('T')[0]; // OLD: This is YYYY-MM-DD in UTC
+        
+        eventAreaElement.innerHTML = ''; 
+        try {
+            // API call uses krtDateStrForAPI
+            const response = await fetch(`/api/events_for_day/${krtDateStrForAPI}/`); 
+            if (!response.ok) {
+                console.error(`Error fetching events for ${krtDateStrForAPI}: ${response.status}`);
+                eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка</span>';
+                return;
+            }
+            const rawEvents = await response.json();
+            const events = rawEvents.filter(e => e && typeof e === 'object' && e.StartTime && e.EndTime && e.Title);
 
-            dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Загрузка событий...</div>'; // Loading state
+            if (events.length === 0) {
+                const placeholder = document.createElement('span');
+                placeholder.classList.add('timeline-event-placeholder');
+                placeholder.textContent = 'нет событий на день';
+                eventAreaElement.appendChild(placeholder);
+                return;
+            }
+            
+            // Define view window based on 6 AM KRT for krtDateStrForAPI, converted to true UTC
+            const viewWindowStart_KRT_asText = krtDateStrForAPI + "T06:00:00";
+            // Use +07:00 for Krasnoyarsk time (UTC+7)
+            const viewWindowStartForDay_TrueUTC = new Date(Date.parse(viewWindowStart_KRT_asText + "+07:00"));
+            const viewWindowEndForDay_TrueUTC = new Date(viewWindowStartForDay_TrueUTC.getTime() + 24 * 60 * 60 * 1000);
+
+            const TOTAL_MINUTES_IN_TIMELINE_VIEW = 24 * 60;
+
+            let processedEvents = events.map(event => {
+                // Ensure StartTime and EndTime strings are parsed as UTC if they are naive
+                const startTimeStr = event.StartTime;
+                const endTimeStr = event.EndTime;
+
+                const ensureUTC = (dateStr) => {
+                    if (!dateStr) return null;
+                    // Check if it already has timezone info (Z or +/-HH:MM or +/-HHMM)
+                    if (dateStr.endsWith('Z') || /[+\-]\d{2}:?\d{2}$/.test(dateStr)) {
+                        return new Date(dateStr);
+                    }
+                    // If naive (e.g., YYYY-MM-DDTHH:MM:SS), append 'Z' to parse as UTC
+                    return new Date(dateStr + 'Z');
+                };
+
+                let actualStart = ensureUTC(startTimeStr);
+                let actualEnd = ensureUTC(endTimeStr);
+
+                if (!actualStart || !actualEnd) return null; // Invalid date string
+
+                // Clip event start and end times to the KRT-based window (viewWindowStartForDay_TrueUTC)
+                let clippedStart_UTC = actualStart.getTime() < viewWindowStartForDay_TrueUTC.getTime() ? viewWindowStartForDay_TrueUTC : actualStart;
+                let clippedEnd_UTC = actualEnd.getTime() > viewWindowEndForDay_TrueUTC.getTime() ? viewWindowEndForDay_TrueUTC : actualEnd;
+
+                if (clippedStart_UTC.getTime() >= clippedEnd_UTC.getTime()) return null;
+
+                // Calculate startMinutesInWindow relative to viewWindowStartForDay_TrueUTC
+                let startMinutesInWindow = (clippedStart_UTC.getTime() - viewWindowStartForDay_TrueUTC.getTime()) / (60 * 1000);
+                startMinutesInWindow = Math.max(0, startMinutesInWindow); // Ensure non-negative
+                
+                let durationInWindowMinutes = (clippedEnd_UTC.getTime() - clippedStart_UTC.getTime()) / (1000 * 60);
+                durationInWindowMinutes = Math.max(15, durationInWindowMinutes); 
+
+                if (startMinutesInWindow + durationInWindowMinutes > TOTAL_MINUTES_IN_TIMELINE_VIEW) {
+                    durationInWindowMinutes = TOTAL_MINUTES_IN_TIMELINE_VIEW - startMinutesInWindow;
+                }
+                if (durationInWindowMinutes <= 0) return null;
+
+                return {
+                    ...event,
+                    id: event.id,
+                    title: event.Title,
+                    color: event.Colour,
+                    originalStartTime: actualStart, 
+                    originalEndTime: actualEnd,
+                    startMinutes: startMinutesInWindow,
+                    durationMinutes: durationInWindowMinutes,
+                    leftPercent: (startMinutesInWindow / TOTAL_MINUTES_IN_TIMELINE_VIEW) * 100,
+                    widthPercent: (durationInWindowMinutes / TOTAL_MINUTES_IN_TIMELINE_VIEW) * 100, // Removed Math.max and large minimum
+                };
+            }).filter(e => e !== null);
+
+            processedEvents.sort((a, b) => a.startMinutes - b.startMinutes || (b.startMinutes + b.durationMinutes) - (a.startMinutes + a.durationMinutes));
+
+            const eventHeightPx = 60; 
+            const eventGapPx = 6;   
+            
+            processedEvents.forEach(event => event.lane = 0);
+
+            for (let i = 0; i < processedEvents.length; i++) {
+                const currentEvent = processedEvents[i];
+                let assignedLane = 0;
+                let conflictResolved = false;
+                while(!conflictResolved) {
+                    let inConflictWithOtherInLane = false;
+                    for (let j = 0; j < i; j++) { 
+                        const placedEvent = processedEvents[j];
+                        if (placedEvent.lane === assignedLane) { 
+                            const currentEventEndM = currentEvent.startMinutes + currentEvent.durationMinutes;
+                            const placedEventEndM = placedEvent.startMinutes + placedEvent.durationMinutes;
+                            if (currentEvent.startMinutes < placedEventEndM && currentEventEndM > placedEvent.startMinutes) {
+                                inConflictWithOtherInLane = true;
+                                break; 
+                            }
+                        }
+                    }
+                    if (!inConflictWithOtherInLane) {
+                        currentEvent.lane = assignedLane;
+                        conflictResolved = true;
+                    } else {
+                        assignedLane++; 
+                    }
+                }
+            }
+            
+            let maxLanesUsed = 0;
+            processedEvents.forEach(e => maxLanesUsed = Math.max(maxLanesUsed, e.lane + 1));
+            eventAreaElement.style.minHeight = `${maxLanesUsed * (eventHeightPx + eventGapPx) + eventGapPx}px`;
+
+            processedEvents.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.classList.add('timeline-event-item'); 
+                eventItem.dataset.eventId = event.id;
+                eventItem.style.backgroundColor = event.color || '#007bff';
+                
+                eventItem.style.position = 'absolute';
+                eventItem.style.left = `${event.leftPercent}%`;
+                const adjustedWidth = event.widthPercent >= 99 ? event.widthPercent : event.widthPercent - 0.2;
+                eventItem.style.width = `${adjustedWidth}%`; 
+                
+                eventItem.style.top = `${event.lane * (eventHeightPx + eventGapPx) + eventGapPx}px`;
+                eventItem.style.height = `${eventHeightPx}px`;
+
+                // Display time and tooltip in Krasnoyarsk Time
+                const krtDisplayOptions = { timeZone: KRASNOYARSK_TIMEZONE, hour: '2-digit', minute:'2-digit' };
+                const krtTooltipOptions = { timeZone: KRASNOYARSK_TIMEZONE, year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                eventItem.innerHTML = `
+                    <div class="timeline-event-time-start">${event.originalStartTime.toLocaleTimeString('ru-RU', krtDisplayOptions)}</div>
+                    <strong class="timeline-event-title">${event.title}</strong>`;
+                
+                const startKRTStr = event.originalStartTime.toLocaleString('ru-RU', krtTooltipOptions);
+                const endKRTStr = event.originalEndTime.toLocaleString('ru-RU', krtTooltipOptions);
+                eventItem.setAttribute('title', `${event.title} (${startKRTStr} - ${endKRTStr})`);
+                
+                eventItem.addEventListener('click', () => {
+                    openModalForEdit(event.id);
+                });
+                eventAreaElement.appendChild(eventItem);
+            });
+
+        } catch (error) {
+            console.error(`Failed to fetch or parse events for ${krtDateStrForAPI}:`, error);
+            eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка загрузки событий</span>';
+        }
+    }
+
+    // --- Event Form (Inline) Functionality (Targets center panel) ---
+    // Consider hiding or removing this section now that we have a modal
+    // For now, I will hide it via CSS and comment out its JS logic initiation if any.
+    const inlineFormContainer = document.querySelector('.event-form-container');
+    if (inlineFormContainer) {
+        inlineFormContainer.style.display = 'none'; // Hide it now
+    }
+    // function updateEventFormForRange(startDateStr, endDateStr) { ... } // OLD
+    // async function openEventFormForEdit(eventId, displayedStartTimeStr, displayedEndTimeStr) { ... } // OLD
+    // if (eventFormInline) { eventFormInline.addEventListener('submit', ... ); } // OLD
+
+    // --- NEW: Modal Event Form Functions ---
+    async function openModalForEdit(eventId) {
+        if (!eventModalForm) return;
+        try {
+            const response = await fetch(`/api/event_detail/${eventId}/`);
+            if (!response.ok) throw new Error('Failed to fetch event details for modal.');
+            const eventData = await response.json();
+
+            if (eventModalTitle) eventModalTitle.textContent = 'Редактировать событие';
+            if (modalEventIdInput) modalEventIdInput.value = eventData.id;
+            eventModalForm.action = `/edit_event/${eventData.id}/`;
+
+            // Populate form fields in modal
+            eventModalForm.querySelector('[name="Title"]').value = eventData.Title || '';
+            eventModalForm.querySelector('[name="StartTime"]').value = convertUTCToKRT_YYYYMMDDTHHMM(eventData.StartTime);
+            eventModalForm.querySelector('[name="EndTime"]').value = convertUTCToKRT_YYYYMMDDTHHMM(eventData.EndTime);
+            eventModalForm.querySelector('[name="Description"]').value = eventData.Description || '';
+            eventModalForm.querySelector('[name="event_type"]').value = eventData.event_type || ''; // Ensure a default if not present
+            
+            let colorVal = eventData.Colour;
+            if (!colorVal || typeof colorVal !== 'string' || !colorVal.match(/^#[0-9a-fA-F]{6}$/)) {
+                colorVal = '#007bff'; 
+            }
+            eventModalForm.querySelector('[name="Colour"]').value = colorVal;
+
+            if (deleteEventModalButton) deleteEventModalButton.style.display = 'inline-block'; // Show delete button for existing events
+            openEventModal();
+        } catch (error) {
+            console.error('Error opening event for modal edit:', error);
+            alert('Не удалось загрузить данные события для редактирования.');
+        }
+    }
+
+    if (eventModalForm) {
+        eventModalForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(eventModalForm);
+            const url = eventModalForm.action;
+            const method = 'POST';
 
             try {
-                const response = await fetch(`/get_day_events/${year}/${month}/${day}/`);
-                if (!response.ok) {
-                    console.error(`Failed to fetch events for ${year}-${month}-${day}:`, response.status);
-                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder" style="color: red;">Ошибка загрузки событий</div>';
-                    return;
-                }
-                const events = await response.json();
-
-                // If no events, display placeholder and return
-                if (events.length === 0) {
-                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Нет событий на день</div>';
-                    return;
-                }
-
-                // Clear loading/placeholder ONLY if there are events to process
-                dayContentElement.innerHTML = ''; 
-
-                let eventTopOffset = 0; 
-                const eventHeight = 22; 
-                const eventMargin = 2; 
-
-                events.forEach(event => {
-                    console.log(`Processing Event: ${event.title} for day ${dateObj.toDateString()}`); // DEBUG
-                    console.log(`  Event color from server: '${event.color}'`); // ADDED: Log the fetched color
-                    const eventItem = document.createElement('div');
-                    eventItem.classList.add('timeline-event-item'); 
-                    eventItem.style.backgroundColor = event.color || '#777'; // CHANGED: Brighter fallback color
-                    
-                    const originalEventStart = new Date(event.start);
-                    const originalEventEnd = new Date(event.end);
-
-                    // Determine actual start and end times for *this specific day* (dateObj)
-                    let dayBoundaryStart = new Date(dateObj); // This is the specific day being rendered
-                    dayBoundaryStart.setHours(0, 0, 0, 0);
-                    let dayBoundaryEnd = new Date(dateObj);
-                    dayBoundaryEnd.setHours(23, 59, 59, 999);
-
-                    // Effective start time for rendering on this day
-                    let displayStartTimeOnDay = originalEventStart > dayBoundaryStart ? originalEventStart : dayBoundaryStart;
-                    // Effective end time for rendering on this day
-                    let displayEndTimeOnDay = originalEventEnd < dayBoundaryEnd ? originalEventEnd : dayBoundaryEnd;
-
-                    // --- BEGIN DETAILED DATE LOGGING ---
-                    console.log(`  DEBUG DATES for event: ${event.title} on ${dateObj.toDateString()}`);
-                    console.log(`    dateObj (local for day): ${dateObj.toString()}`);
-                    console.log(`    originalEventStart (ISO): ${originalEventStart.toISOString()}, originalEventStart (local): ${originalEventStart.toString()}`);
-                    console.log(`    originalEventEnd (ISO): ${originalEventEnd.toISOString()}, originalEventEnd (local): ${originalEventEnd.toString()}`);
-                    console.log(`    dayBoundaryStart (ISO): ${dayBoundaryStart.toISOString()}, dayBoundaryStart (local): ${dayBoundaryStart.toString()}`);
-                    console.log(`    dayBoundaryEnd (ISO): ${dayBoundaryEnd.toISOString()}, dayBoundaryEnd (local): ${dayBoundaryEnd.toString()}`);
-                    console.log(`    displayStartTimeOnDay (ISO): ${displayStartTimeOnDay.toISOString()}, displayStartTimeOnDay (local): ${displayStartTimeOnDay.toString()}`);
-                    console.log(`    displayEndTimeOnDay (ISO): ${displayEndTimeOnDay.toISOString()}, displayEndTimeOnDay (local): ${displayEndTimeOnDay.toString()}`);
-                    // --- END DETAILED DATE LOGGING ---
-
-                    // If event doesn't actually fall on this day after clamping, skip
-                    if (displayStartTimeOnDay > displayEndTimeOnDay) { // This check uses full Date objects, should be fine
-                        console.log(`  Event ${event.title} SKIPPED for ${dateObj.toDateString()}: displayStartTimeOnDay > displayEndTimeOnDay`); 
-                        return; 
-                    }
-                    
-                    const dayTotalMinutes = 24 * 60;
-
-                    // Use UTC hours/minutes for positioning to match apparent time from server
-                    let eventStartMinutesOnDay = (displayStartTimeOnDay.getUTCHours() * 60) + displayStartTimeOnDay.getUTCMinutes();
-                    let eventEndMinutesOnDay = (displayEndTimeOnDay.getUTCHours() * 60) + displayEndTimeOnDay.getUTCMinutes();
-                    
-                    if (displayEndTimeOnDay.getUTCHours() === 23 && 
-                        displayEndTimeOnDay.getUTCMinutes() === 59 && 
-                        displayEndTimeOnDay.getUTCSeconds() >= 59) { 
-                        eventEndMinutesOnDay = dayTotalMinutes;
-                    }
-
-                    const eventDurationMinutesOnDay = Math.max(0, eventEndMinutesOnDay - eventStartMinutesOnDay);
-                    console.log(`  Event Minutes on Day (using UTC components): Start=${eventStartMinutesOnDay}, End=${eventEndMinutesOnDay}, Duration=${eventDurationMinutesOnDay}`);
-
-                    const isAllDayForThisCell = (originalEventStart <= dayBoundaryStart && originalEventEnd >= dayBoundaryEnd);
-
-                    if (eventDurationMinutesOnDay > 0 || isAllDayForThisCell) { 
-                        let currentLeftPercentage, currentWidthPercentage;
-                        if (isAllDayForThisCell) {
-                             eventItem.style.left = '0%';
-                             eventItem.style.width = '100%';
-                             currentLeftPercentage = 0; currentWidthPercentage = 100;
-                        } else {
-                            currentLeftPercentage = (eventStartMinutesOnDay / dayTotalMinutes) * 100;
-                            currentWidthPercentage = (eventDurationMinutesOnDay / dayTotalMinutes) * 100;
-                            eventItem.style.left = `${currentLeftPercentage}%`;
-                            eventItem.style.width = `${Math.max(currentWidthPercentage, 2)}%`;
-                        }
-                        console.log(`  Applied Styles: Left=${eventItem.style.left}, Width=${eventItem.style.width}, Top=${eventTopOffset}px, BG=${event.color || '#777'}`);
-                        
-                        eventItem.style.top = `${eventTopOffset}px`;
-                        eventTopOffset += eventHeight + eventMargin; 
-
-                        const eventTime = document.createElement('span');
-                        eventTime.classList.add('timeline-event-time');
-                        if (isAllDayForThisCell) {
-                            eventTime.textContent = "Весь день";
-                        } else {
-                            // Format UTC time for display
-                            const startHoursUTC = String(displayStartTimeOnDay.getUTCHours()).padStart(2, '0');
-                            const startMinutesUTC = String(displayStartTimeOnDay.getUTCMinutes()).padStart(2, '0');
-                            const endHoursUTC = String(displayEndTimeOnDay.getUTCHours()).padStart(2, '0');
-                            const endMinutesUTC = String(displayEndTimeOnDay.getUTCMinutes()).padStart(2, '0');
-                            eventTime.textContent = `${startHoursUTC}:${startMinutesUTC} - ${endHoursUTC}:${endMinutesUTC}`;
-                        }
-
-                        const eventTitle = document.createElement('span');
-                        eventTitle.classList.add('timeline-event-title');
-                        eventTitle.textContent = event.title;
-
-                        eventItem.appendChild(eventTitle);
-                        eventItem.appendChild(eventTime);
-                        
-                        eventItem.dataset.eventId = event.id;
-                        eventItem.addEventListener('click', () => {
-                            openEventModalForEdit(event.id);
-                        });
-                        dayContentElement.appendChild(eventItem);
-                    } else {
-                        console.log(`  Event ${event.title} NOT RENDERED for ${dateObj.toDateString()} (duration ${eventDurationMinutesOnDay}, not all day)`); // DEBUG
-                    }
-                });
-
-                // After looping, if no event items were actually added, show placeholder
-                if (dayContentElement.children.length === 0) {
-                    dayContentElement.innerHTML = '<div class="timeline-event-placeholder">Нет событий на день</div>';
-                }
-
-            } catch (error) {
-                console.error(`Error fetching or displaying events for ${year}-${month}-${day}:`, error);
-                dayContentElement.innerHTML = '<div class="timeline-event-placeholder" style="color: red;">Ошибка при отображении событий</div>';
-            }
-        }
-
-        if (viewScheduleButton) {
-            viewScheduleButton.addEventListener('click', () => {
-                if (selectedStartDate && selectedEndDate) {
-                    console.log(`Calling generateTimelineView with startDate: ${selectedStartDate}, endDate: ${selectedEndDate}`);
-                    generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
-                } else if (selectedStartDate) {
-                    alert("Пожалуйста, выберите и конечную дату на календаре.");
-                    console.log(`Calling generateTimelineView (single day) with startDate: ${selectedStartDate}, endDate: ${selectedStartDate}`);
-                    generateTimelineView(new Date(selectedStartDate), new Date(selectedStartDate)); 
-                } else {
-                    alert("Пожалуйста, выберите начальную и конечную дату на маленьком календаре или хотя бы начальную.");
-                }
-            });
-        }
-        
-        // TODO: Add logic to show center column and resizer again when navigating away from timeline view
-        // For example, when clicking other main nav tabs.
-        // E.g., document.querySelectorAll('.nav-tab-button').forEach(tab => {
-        //    tab.addEventListener('click', () => {
-        //        if (centerColumnEl) centerColumnEl.style.display = 'flex'; // or 'block' depending on original
-        //        if (resizerCenterRightEl) resizerCenterRightEl.style.display = 'flex'; // or 'block'
-        //        if (timelineViewContainer) timelineViewContainer.innerHTML = ''; // Clear timeline
-        //    });
-        // });
-        
-        // OLD Calendar Functionality (fetchAndDisplayEvents, openEventModal, openEventModalForEdit)
-        // This will need to be adapted or removed if the main large calendar is gone.
-        // For now, I will comment it out to avoid conflicts, assuming the new timeline view
-        // will have its own event display and interaction logic.
-
-        /*
-        const currentMonthEl = document.getElementById('currentMonth'); // These might be null now
-        const currentYearEl = document.getElementById('currentYear');
-        const calendarDaysBodyEl = document.getElementById('calendarDaysBody');
-        const prevMonthBtn = document.getElementById('prevMonthBtn');
-        const nextMonthBtn = document.getElementById('nextMonthBtn');
-        const timelineMonthHeaderEl = document.getElementById('timelineMonthHeader'); 
-        let currentDate = new Date(); // This was for the large calendar
-
-        function renderCalendar() { ... } // Old renderCalendar
-        async function fetchAndDisplayEvents(year, month_one_indexed, calendarCells) { ... } // Old event fetching
-        // Event Modal functions (openEventModal, openEventModalForEdit) might still be useful
-        // but will be triggered from the timeline view, not the old large calendar.
-        */
-
-        // Event Modal Functionality (Preserved, but trigger points will change)
-        const eventModal = document.getElementById('eventModal');
-        const eventModalCloseButton = document.getElementById('eventModalCloseButton');
-        const eventForm = document.getElementById('eventForm');
-        const eventModalTitle = document.getElementById('eventModalTitle');
-        const eventIdInput = document.getElementById('event_id');
-
-        if (eventForm) {
-            eventForm.addEventListener('submit', async function(e) {
-                e.preventDefault(); // Prevent default page reload
-
-                const formData = new FormData(this);
-                const url = this.action;
-
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': formData.get('csrfmiddlewaretoken') // Ensure CSRF token is sent
-                        }
-                    });
-
-                    // After form submission (create or edit), close modal and refresh timeline
-                    if (eventModal) eventModal.style.display = 'none';
-
-                    // Response.url will be the URL after redirects. If it's the main page, 
-                    // it implies a successful operation (or at least one that the backend processed and redirected from).
-                    // A more robust check would involve the backend returning JSON for AJAX calls.
-                    if (response.redirected && response.url.endsWith('/')) { // Assuming main_page is at root '/'
-                         // We should check if the redirect URL is the main page URL
-                        const mainPageUrl = new URL('{% url "main_page" %}', window.location.origin).href;
-                        if (response.url === mainPageUrl) {
-                             if (selectedStartDate && selectedEndDate) {
-                                console.log("Refreshing timeline for", selectedStartDate, "to", selectedEndDate);
-                                generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
-                            } else if (selectedStartDate) { // If only start was selected (e.g. single day view)
-                                console.log("Refreshing timeline for single day", selectedStartDate);
-                                generateTimelineView(new Date(selectedStartDate), new Date(selectedStartDate));
+                const response = await fetch(url, { method, body: formData, headers: {'X-CSRFToken': formData.get('csrfmiddlewaretoken')} });
+                // Check if response is okay AND if it's JSON before trying to parse
+                if (response.ok) {
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        const responseData = await response.json();
+                        // Changed from responseData.success to responseData.status === "success"
+                        if (responseData.status === "success") { 
+                            alert(responseData.message || 'Событие сохранено!'); // Use message from backend
+                            closeEventModal();
+                            // Refresh timeline
+                            if (selectedStartDate && timelineViewContainer) {
+                                 const start = new Date(selectedStartDate);
+                                 const end = selectedEndDate ? new Date(selectedEndDate) : new Date(selectedStartDate);
+                                 generateTimelineView(start, end);
+                            } else {
+                                const today = new Date();
+                                const currentMonth = today.getMonth();
+                                const currentYear = today.getFullYear();
+                                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                                generateTimelineView(firstDayOfMonth, lastDayOfMonth); // Refresh current month
                             }
                         } else {
-                            // If redirected elsewhere, or an error occurred that didn't redirect to main_page
-                            // a full page reload might be what the backend intended for that case.
-                            // Or, ideally backend returns JSON error messages for AJAX.
-                            console.warn("Form submission redirected to an unexpected URL or failed without redirect to main page.", response);
-                            // Potentially reload or show a generic error to user
-                        }
-                    } else if (response.ok) {
-                        // This case might be hit if the backend is changed to return JSON on success for AJAX
-                        // and NOT redirect. For now, we assume redirects.
-                        console.log("Form submitted successfully (non-redirect response).");
-                         if (selectedStartDate && selectedEndDate) {
-                            generateTimelineView(new Date(selectedStartDate), new Date(selectedEndDate));
+                            // Display errors more gracefully inside the modal
+                            let errorMessages = responseData.message || 'Не удалось сохранить событие.';
+                            if (responseData.errors) {
+                                for (const field in responseData.errors) {
+                                    errorMessages += `\n- ${field}: ${responseData.errors[field].join(', ')}`;
+                                }
+                            }
+                            alert('Ошибка: ' + errorMessages);
                         }
                     } else {
-                        // Handle HTTP errors if the fetch itself failed or backend returned an error status without redirect
-                        console.error("Event form submission failed:", response.status, response.statusText);
-                        alert("Ошибка при сохранении события. Проверьте консоль.");
+                        // Handle non-JSON responses if necessary, or log an error
+                        const textResponse = await response.text();
+                        console.error("Server responded with non-JSON:", response.status, textResponse);
+                        alert('Ошибка сервера: получен неожиданный ответ. Пожалуйста, попробуйте еще раз.');
+                    }
+                } else {
+                    // Handle HTTP errors (e.g., 400, 404, 500)
+                    let errorText = 'Ошибка сервера. Пожалуйста, попробуйте еще раз.';
+                    try {
+                        const errorData = await response.json(); // Try to parse error as JSON
+                        errorText = errorData.message || (errorData.errors ? JSON.stringify(errorData.errors) : errorText);
+                         if (errorData.errors) {
+                            let messages = [];
+                            for (const field in errorData.errors) {
+                                messages.push(`${field}: ${errorData.errors[field].join(', ')}`);
+                            }
+                            errorText = `Пожалуйста, исправьте ошибки: \n${messages.join('\n')}`;
+                        } else if (errorData.message) {
+                            errorText = errorData.message;
+                        }
+                    } catch (e) {
+                        // If error response is not JSON, use default message or response.statusText
+                        errorText = `Ошибка ${response.status}: ${response.statusText}. Пожалуйста, попробуйте еще раз.`;
+                        console.error("Error parsing error response or non-JSON error response", e);
+                    }
+                    alert(errorText);
+                }
+            } catch (error) {
+                console.error('Modal form submission error:', error);
+                alert('Произошла ошибка при отправке формы. Проверьте консоль для деталей.');
+            }
+        });
+    }
+
+    if (deleteEventModalButton) {
+        deleteEventModalButton.addEventListener('click', async function() {
+            const eventId = modalEventIdInput.value;
+            if (!eventId) return;
+
+            if (confirm('Вы уверены, что хотите удалить это событие?')) {
+                try {
+                    const response = await fetch(`/event/delete/${eventId}/`, {
+                        method: 'POST', 
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Content-Type': 'application/json'
+                        },
+                    });
+
+                    if (response.ok) {
+                        const responseData = await response.json();
+                        // Changed from responseData.success to responseData.status === "success"
+                        if (responseData.status === "success") {
+                            alert(responseData.message || 'Событие удалено!'); // Use message from backend
+                            closeEventModal();
+                            // Refresh timeline (same logic as after save)
+                            if (selectedStartDate && timelineViewContainer) {
+                                 const start = new Date(selectedStartDate);
+                                 const end = selectedEndDate ? new Date(selectedEndDate) : new Date(selectedStartDate);
+                                 generateTimelineView(start, end);
+                            } else {
+                               const today = new Date();
+                                const currentMonth = today.getMonth();
+                                const currentYear = today.getFullYear();
+                                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                                generateTimelineView(firstDayOfMonth, lastDayOfMonth); // Refresh current month
+                            }
+                        } else {
+                            alert('Ошибка при удалении: ' + (responseData.message || 'Не удалось удалить событие.'));
+                        }
+                    } else {
+                        const errorData = await response.json().catch(() => ({})); // Try to get JSON error or empty obj
+                        alert('Ошибка сервера при удалении: ' + (errorData.message || `Код ${response.status}`));
                     }
                 } catch (error) {
-                    console.error("Error submitting event form:", error);
-                    alert("Ошибка при отправке данных события.");
+                    console.error('Delete event error:', error);
+                    alert('Произошла ошибка при удалении события. Проверьте консоль.');
                 }
+            }
+        });
+    }
+
+    // --- Event Modal Open/Close Functions (NEW) ---
+    function openEventModal() {
+        if (eventModal) eventModal.style.display = 'flex';
+    }
+
+    function closeEventModal() {
+        if (eventModal) eventModal.style.display = 'none';
+        if (eventModalForm) eventModalForm.reset();
+        if (modalEventIdInput) modalEventIdInput.value = ''; // Clear event ID
+        if (deleteEventModalButton) deleteEventModalButton.style.display = 'none'; // Hide delete button
+    }
+
+    if (eventModalCloseButton) {
+        eventModalCloseButton.addEventListener('click', closeEventModal);
+    }
+    if (cancelEventModalButton) {
+        cancelEventModalButton.addEventListener('click', closeEventModal);
+    }
+    // Close modal if user clicks outside of modal-content (optional)
+    window.addEventListener('click', (event) => {
+        if (event.target === eventModal) { // Clicked on the modal backdrop
+            closeEventModal();
+        }
+    });
+
+    // --- Dynamic Loading for Friends and Chats --- 
+    async function loadFriends() {
+        if (!friendListContainer) return;
+        friendListContainer.innerHTML = '<p class="placeholder-text">Загрузка друзей...</p>';
+        try {
+            // This URL should return JSON: [{id, username, profile_picture_url, ...}, ...]
+            const response = await fetch("{% url 'friend_list_api' %}"); // IMPORTANT: Changed to 'friend_list_api'
+            if (!response.ok) { throw new Error(`Network response was not ok for friends: ${response.status}`); }
+            const friends = await response.json();
+
+            friendListContainer.innerHTML = '';
+            if (friends.length === 0) {
+                friendListContainer.innerHTML = '<p class="placeholder-text">Друзей не найдено.</p>';
+                return;
+            }
+            friends.forEach(friend => {
+                const item = document.createElement('div');
+                item.classList.add('friend-item');
+                item.innerHTML = `
+                    <img src="${friend.profile_picture_url || defaultAvatarUrl}" alt="avatar" class="friend-avatar" onerror="this.src='${defaultAvatarUrl}'">
+                    <div class="friend-info">
+                        <span class="friend-name">${friend.username}</span>
+                        <a href="{% url 'start_or_get_chat' 0 %}user_id=${friend.id}".replace('0?user_id=', friend.id + '?user_id=') class="friend-message-link">Написать сообщение</a>
+                    </div>
+                    <button class="friend-options" data-friend-id="${friend.id}">⋮</button> 
+                `; // TODO: Add actual options for friend-options button (e.g. remove friend)
+                friendListContainer.appendChild(item);
             });
+        } catch (error) {
+            console.error("Failed to load friends:", error);
+            friendListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка загрузки друзей.</p>';
         }
+    }
 
-        function openEventModal(dateString = null) {
-            // ... (definition as before, but ensure dateString can be passed from timeline)
-            if (!eventModal || !eventForm) return;
-            eventForm.reset(); 
-            if (eventIdInput) eventIdInput.value = ''; 
-            if (eventModalTitle) eventModalTitle.textContent = 'Создать событие';
+    async function loadChats() {
+        if (!chatListContainer) return;
+        chatListContainer.innerHTML = '<p class="placeholder-text">Загрузка чатов...</p>';
+        try {
+            // This URL should return JSON: [{id, name, last_message, last_message_at_display, participants:[{username, profile_picture_url}]}, ...]
+            const response = await fetch("{% url 'chat_room_list_api' %}"); // IMPORTANT: Changed to 'chat_room_list_api'
+            if (!response.ok) { throw new Error(`Network response was not ok for chats: ${response.status}`); }
+            const chats = await response.json();
             
-            if (dateString) { // dateString should be YYYY-MM-DD
-                const startTimeField = eventForm.querySelector('[name="StartTime"]');
-                if (startTimeField) {
-                    startTimeField.value = `${dateString}T09:00`; 
-                }
+            chatListContainer.innerHTML = '';
+            if (chats.length === 0) {
+                chatListContainer.innerHTML = '<p class="placeholder-text">Чатов не найдено.</p>';
+                return;
             }
-            eventForm.action = "{% url 'create_event' %}";
-            eventModal.style.display = 'block';
+            chats.forEach(chat => {
+                let chatName = chat.name;
+                let avatarUrl = defaultAvatarUrl; 
+                let lastMessage = chat.last_message || 'Нет сообщений';
+                let lastMessageAt = chat.last_message_at_display || '';
+
+                if (!chatName && chat.participants && chat.participants.length > 0) {
+                    // For 1-on-1 chat, find the other participant (assuming current user is filtered out by API)
+                    const otherParticipant = chat.participants[0]; // API should give the other user
+                    if (otherParticipant) {
+                        chatName = otherParticipant.username;
+                        if(otherParticipant.profile_picture_url) avatarUrl = otherParticipant.profile_picture_url;
+                    } else {
+                         chatName = "Чат"; // Fallback
+                    }
+                } else if (chat.participants && chat.participants.length > 1) { // Group chat
+                    // Use first participant's avatar as group avatar or a generic one
+                     if(chat.participants[0] && chat.participants[0].profile_picture_url) avatarUrl = chat.participants[0].profile_picture_url;
+                }
+                 if (!chatName) chatName = "Групповой чат";
+
+
+                const item = document.createElement('div');
+                item.classList.add('chat-item');
+                // Correctly create chat room detail URL
+                const chatDetailUrl = "{% url 'chat_room_detail' 0 %}".replace('0', chat.id);
+                item.setAttribute('onclick', `window.location.href='${chatDetailUrl}'`);
+                item.innerHTML = `
+                    <img src="${avatarUrl}" alt="avatar" class="chat-avatar" onerror="this.src='${defaultAvatarUrl}'">
+                    <div class="chat-info">
+                        <span class="chat-name">${chatName}</span>
+                        <span class="chat-last-message">${lastMessage}</span>
+                    </div>
+                    <span class="chat-time">${lastMessageAt}</span>
+                `;
+                chatListContainer.appendChild(item);
+            });
+        } catch (error) {
+            console.error("Failed to load chats:", error);
+            chatListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка загрузки чатов.</p>';
         }
+    }
+    
+    // --- Search Functionality for Left Panel ---
+    if(friendSearchInput) {
+        friendSearchInput.addEventListener('input', function() { // 'input' for live search
+            const filter = this.value.toLowerCase();
+            const items = friendListContainer.querySelectorAll('.friend-item');
+            items.forEach(item => {
+                const name = item.querySelector('.friend-name').textContent.toLowerCase();
+                item.style.display = name.includes(filter) ? '' : 'none';
+          });
+        });
+    }
+     if(chatSearchInput) {
+        chatSearchInput.addEventListener('input', function() { // 'input' for live search
+            const filter = this.value.toLowerCase();
+            const items = chatListContainer.querySelectorAll('.chat-item');
+            items.forEach(item => {
+                const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                item.style.display = name.includes(filter) ? '' : 'none';
+        });
+      });
+    }
 
-        async function openEventModalForEdit(eventId) {
-            // ... (definition as before)
-            if (!eventModal || !eventForm) return;
-            // ... rest of the function
-             try {
-                const response = await fetch(`/get_event_details/${eventId}/`);
-                if (!response.ok) {
-                    console.error("Failed to fetch event details:", response.status);
-                    alert("Не удалось загрузить данные события.");
-                    return;
+    // --- Initialize Page: Setup static parts like the new horizontal timeline header ---
+    function initializePage() {
+        if (smallCalendarDaysBodyEl) renderSmallCalendar();
+
+        const timelineHeaderRow = document.getElementById('timelineHeader');
+        if (timelineHeaderRow) {
+            timelineHeaderRow.innerHTML = ''; 
+            timelineHeaderRow.style.display = 'flex'; 
+            timelineHeaderRow.style.boxSizing = 'border-box';
+
+            // Add Month Title
+            const monthTitleSpan = document.createElement('span');
+            monthTitleSpan.classList.add('timeline-month-title');
+            // Use currentSmallCalendarDate for consistency, or new Date() if timeline is independent
+            monthTitleSpan.textContent = monthNames[currentSmallCalendarDate.getMonth()]; 
+            timelineHeaderRow.appendChild(monthTitleSpan);
+
+            const slotsContainer = document.createElement('div');
+            slotsContainer.classList.add('timeline-header-slots-horizontal'); // New class for styling
+            slotsContainer.style.position = 'relative'; // Crucial for mark positioning
+            slotsContainer.style.width = '100%';      // Ensure it spans full width
+            timelineHeaderRow.appendChild(slotsContainer);
+
+            const timePoints = [
+                { label: "06:00", percent: 0 },    // Start at 6:00 AM
+                { label: "12:00", percent: 25 }, // Noon
+                { label: "18:00", percent: 50 }, // 6 PM
+                { label: "00:00", percent: 75 }, // Midnight
+                { label: "06:00", percent: 100 }  // 6:00 AM next day (end of 24h cycle)
+            ];
+
+            timePoints.forEach(tp => {
+                const mark = document.createElement('div');
+                mark.classList.add('timeline-hour-mark-horizontal'); // New class
+                mark.style.left = `${tp.percent}%`;
+
+                const label = document.createElement('span');
+                label.classList.add('timeline-hour-label-horizontal'); // New class
+                label.textContent = tp.label;
+                
+                // Adjust label positioning to be centered under the mark, or at edges
+                if (tp.percent === 0) {
+                    label.style.transform = 'translateX(0%)'; // Consistent percentage unit
+                } else if (tp.percent === 100) {
+                    label.style.transform = 'translateX(-100%)';
+                } else {
+                    label.style.transform = 'translateX(-50%)';
                 }
-                const eventData = await response.json();
 
-                eventForm.reset();
-                if (eventModalTitle) eventModalTitle.textContent = 'Редактировать событие';
-                if (eventIdInput) eventIdInput.value = eventData.id;
-
-                const titleField = eventForm.querySelector('[name="Title"]');
-                const startTimeField = eventForm.querySelector('[name="StartTime"]');
-                const endTimeField = eventForm.querySelector('[name="EndTime"]');
-                const descriptionField = eventForm.querySelector('[name="Description"]');
-                const eventTypeField = eventForm.querySelector('[name="event_type"]');
-                const colourField = eventForm.querySelector('[name="Colour"]');
-
-                if (titleField) titleField.value = eventData.Title;
-                if (startTimeField) startTimeField.value = eventData.StartTime.substring(0, 16);
-                if (endTimeField) endTimeField.value = eventData.EndTime.substring(0, 16);
-                if (descriptionField) descriptionField.value = eventData.Description;
-                if (eventTypeField) eventTypeField.value = eventData.event_type;
-                if (colourField) colourField.value = eventData.Colour;
-
-                eventForm.action = `/edit_event/${eventData.id}/`;
-                eventModal.style.display = 'block';
-
-            } catch (error) {
-                console.error("Error opening event modal for edit:", error);
-                alert("Ошибка при открытии формы редактирования события.");
-            }
+                mark.appendChild(label);
+                slotsContainer.appendChild(mark);
+            });
         }
         
-        if (eventModalCloseButton) {
-            eventModalCloseButton.addEventListener('click', () => {
-                if (eventModal) eventModal.style.display = 'none';
-            });
+        // Set initial selected range for small calendar and load vertical days
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 (Sun) - 6 (Sat)
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)); // Adjust to Monday
+        startOfWeek.setHours(0,0,0,0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23,59,59,999);
+
+        selectedStartDate = getKrasnoyarskDateString(startOfWeek);
+        selectedEndDate = getKrasnoyarskDateString(endOfWeek);
+        
+        if (smallCalendarDaysBodyEl) renderSmallCalendar();
+        if (timelineViewContainer) generateTimelineView(startOfWeek, endOfWeek);
+        // if (eventFormInline) updateEventFormForRange(selectedStartDate, selectedEndDate); // OLD Inline form logic - Call removed
+
+        // Load initial tab content
+        const activeTab = document.querySelector('.tab-link.active');
+        if (activeTab) {
+            const tabName = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
+            if (tabName === 'friends-tab-content') { loadFriends(); }
+            else if (tabName === 'chats-tab-content') { loadChats(); }
+        } else { // Fallback if no tab is active by default (should be one)
+            loadFriends();
         }
-
-        // Resizer Functionality (Modified)
-        const leftColumn = document.querySelector('.main-page-left-column');
-        const centerColumn = document.querySelector('.main-page-center-column');
-        const rightColumn = document.querySelector('.main-page-right-column');
-        const resizerLeftCenter = document.getElementById('resizer-left-center');
-        const resizerCenterRight = document.getElementById('resizer-center-right');
-
-        function makeResizable(resizer, prevElement, nextElement) {
-            let x = 0;
-            let prevElementWidth = 0;
-            let nextElementWidth = 0;
-
-            const mouseDownHandler = function (e) {
-                x = e.clientX;
-                prevElementWidth = prevElement.getBoundingClientRect().width;
-                
-                if (resizer.id === 'resizer-center-right') {
-                    nextElementWidth = nextElement.getBoundingClientRect().width;
-                } else {
-                    nextElementWidth = 0; 
+        
+        // Fetch friend request count
+        fetch("{% url 'friend_requests_count_api' %}") // Needs a new API endpoint
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('friendRequestsCount');
+                if (badge && data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else if (badge) {
+                    badge.style.display = 'none';
                 }
-                
-                resizer.classList.add('active');
-                document.addEventListener('mousemove', mouseMoveHandler);
-                document.addEventListener('mouseup', mouseUpHandler);
-            };
+            })
+            .catch(err => console.error('Failed to fetch friend request count:', err));
+    }
 
-            const mouseMoveHandler = function (e) {
-                const dx = e.clientX - x;
-                const newPrevWidth = prevElementWidth + dx;
-                const prevMinWidth = parseInt(getComputedStyle(prevElement).minWidth);
-                
-                if (resizer.id === 'resizer-center-right') { 
-                    const newNextWidth = nextElementWidth - dx;
-                    const nextMinWidth = parseInt(getComputedStyle(nextElement).minWidth);
-                    if (newPrevWidth >= prevMinWidth && newNextWidth >= nextMinWidth) {
-                        prevElement.style.flexBasis = `${newPrevWidth}px`;
-                        nextElement.style.flexBasis = `${newNextWidth}px`;
-                    }
-                } else { 
-                    if (newPrevWidth >= prevMinWidth) {
-                        prevElement.style.flexBasis = `${newPrevWidth}px`;
-                    }
-                }
-            };
-
-            const mouseUpHandler = function () {
-                resizer.classList.remove('active');
-                document.removeEventListener('mousemove', mouseMoveHandler);
-                document.removeEventListener('mouseup', mouseUpHandler);
-            };
-
-            if (resizer) {
-                 resizer.addEventListener('mousedown', mouseDownHandler);
-            }
-        }
-
-        if (leftColumn && centerColumn && resizerLeftCenter) {
-            makeResizable(resizerLeftCenter, leftColumn, centerColumn);
-        }
-        if (centerColumn && rightColumn && resizerCenterRight) {
-            makeResizable(resizerCenterRight, centerColumn, rightColumn);
-        }
-
-        const createEventGeneralButton = document.getElementById('createEventGeneralBtn');
-        if (createEventGeneralButton) {
-            createEventGeneralButton.addEventListener('click', () => {
-                openEventModal(); // Open modal without pre-filling date
-            });
-        }
+    initializePage();
     });
   </script>
 {% endblock %}

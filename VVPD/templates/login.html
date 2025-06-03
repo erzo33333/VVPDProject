@@ -95,14 +95,14 @@
     <div class="auth-box">
         <h1 class="auth-title">Вход</h1>
         
-        {% if error %}
+    {% if error %}
             <div class="error-message">
                 {{ error }}
             </div>
-        {% endif %}
+    {% endif %}
         
         <form method="post" class="auth-form">
-            {% csrf_token %}
+        {% csrf_token %}
             <div class="form-group">
                 <input type="text" name="username" placeholder="Телефон или адрес эл. почты" required>
             </div>
@@ -114,7 +114,7 @@
                 <a href="{% url 'register' %}">Создать аккаунт</a>
             </div>
             <button type="submit" class="auth-button">ВОЙТИ</button>
-        </form>
+    </form>
     </div>
 </div>
 {% endblock %}
