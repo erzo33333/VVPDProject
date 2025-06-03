@@ -8,6 +8,7 @@ from django.conf import settings # For ForeignKey to settings.AUTH_USER_MODEL
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True, verbose_name="Фото профиля")
+    friends = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='friend_profiles', blank=True, verbose_name="Друзья")
     
     PRIVACY_CHOICES = [
         ('everyone', 'Все'),
@@ -142,7 +143,9 @@ class Event(models.Model):
 
 class ChatRoom(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True, help_text="Название группового чата") # For group chats
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_chat_rooms', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Создатель чата")
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='chat_rooms')
+    is_group = models.BooleanField(default=False, verbose_name="Это групповой чат?")
     created_at = models.DateTimeField(auto_now_add=True)
     last_message_at = models.DateTimeField(null=True, blank=True) # To sort conversations
 

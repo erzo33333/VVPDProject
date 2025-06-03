@@ -6,7 +6,10 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/main_page_v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile_modal.css' %}">
+<link rel="stylesheet" href="{% static 'css/chat_view.css' %}">
 {% endblock %}
+
+{% block body_attributes %}data-user-id="{{ request.user.id }}"{% endblock %}
 
 {% block content %}
 <div class="main-layout-container">
@@ -14,20 +17,34 @@
     <!-- Left Panel: Friends and Chats -->
     <aside class="left-panel">
         <div class="left-panel-tabs">
-            <button class="tab-link active" onclick="openTab(event, 'friends-tab-content')">Друзья</button>
-            <button class="tab-link" onclick="openTab(event, 'chats-tab-content')">Чаты</button>
+            <button class="tab-link active" data-tab="friends-tab-content">Друзья</button>
+            <button class="tab-link" data-tab="chats-tab-content">Чаты</button>
         </div>
 
         <div id="friends-tab-content" class="tab-content" style="display: block;">
-            <div class="panel-search-container">
-                <input type="text" id="friendSearchInput" placeholder="🔍 Поиск в друзьях" class="panel-search-input">
-            </div>
             <button class="action-button panel-button create-group-btn">
                 <span class="icon-plus-mainpage">+</span> Создать группу
             </button>
-            <a href="{% url 'friend_requests' %}" class="action-button panel-button friend-requests-btn">
-                <span class="icon-users-mainpage">👥</span> Заявки в друзья <span class="badge" id="friendRequestsCount"></span>
+            <a href="#" class="action-button panel-button friend-requests-btn" id="showFriendRequestsBtn">
+                <span class="icon-users-mainpage">👥</span> Заявки в друзья <span class="badge" id="friendRequestsCount">0</span>
             </a>
+            <div id="friendRequestsContainer" class="friend-requests-list-container" style="display: none; margin-top: 10px; margin-bottom: 10px;">
+                <h5>Входящие заявки:</h5>
+                <div id="incomingRequestsList">
+                    <!-- Requests will be loaded here -->
+                </div>
+            </div>
+
+            <div class="panel-search-container" style="margin-top: 15px;">
+                 <input type="text" id="userGlobalSearchInput" placeholder="🔍 Поиск новых друзей (по username)" class="panel-search-input">
+            </div>
+            <div id="userGlobalSearchResultsContainer" class="user-search-results-container">
+                <!-- User search results will be loaded here -->
+            </div>
+
+            <div class="panel-search-container">
+                <input type="text" id="friendSearchInput" placeholder="🔍 Поиск в друзьях" class="panel-search-input">
+            </div>
             <div class="friend-list-container" id="friendListContainer">
                 <p class="placeholder-text">Загрузка друзей...</p>
             </div>
@@ -43,7 +60,7 @@
         </div>
     </aside>
 
-    <!-- Center Panel: Schedule Editing Tools (WAS Right Panel) -->
+    <!-- Center Panel: Schedule Editing Tools -->
     <aside class="center-panel editing-panel">
         <h4>Редактировать расписание</h4>
         
@@ -70,7 +87,7 @@
             <div><input type="checkbox" id="filterWork" name="filterWork" checked> <label for="filterWork">Рабочие/учебные дела</label></div>
         </div>
 
-        <div class="event-form-container">
+        <div class="event-form-container" style="display:none;"> <!-- Hidden as per previous step -->
             <h5 id="eventFormTitle">Создать событие</h5>
             <form method="POST" id="eventFormInline" action="{% url 'create_event' %}">
                 {% csrf_token %}
@@ -86,7 +103,7 @@
         </div>
     </aside>
 
-    <!-- Right Panel: Timeline Calendar (WAS Center Panel) -->
+    <!-- Right Panel: Timeline Calendar -->
     <div class="timeline-section">
         <div id="timelineHeader" class="timeline-header-row"></div>
         <main class="right-panel timeline-panel" id="timelineViewContainer">
@@ -94,9 +111,28 @@
         </main>
     </div>
 
+    <!-- Chat View Panel (Initially Hidden) -->
+    <div id="chatViewPanel" class="chat-view-panel" style="display: none;">
+        <div class="chat-view-header">
+            <button id="chatViewBackButton" class="chat-header-button back-button">← Назад</button>
+            <h3 id="chatViewHeaderName" class="chat-name-header">Chat Name</h3>
+            <div class="chat-header-actions">
+                <button id="chatViewAddParticipantButton" class="chat-header-button" style="display: none;" title="Добавить участника">👤+</button>
+                <button id="chatViewLeaveGroupButton" class="chat-header-button" style="display: none;" title="Покинуть группу">🚪</button>
+            </div>
+        </div>
+        <div class="chat-view-messages-container" id="chatViewMessagesContainer">
+            <p class="placeholder-text">Загрузка сообщений...</p>
+        </div>
+        <div class="chat-view-input-area">
+            <textarea id="chatMessageInput" placeholder="Напишите сообщение..."></textarea>
+            <button id="sendChatMessageButton" class="action-button">Отправить</button>
+        </div>
 </div>
 
-<!-- Profile Modal (Preserved) -->
+</div>
+
+<!-- Profile Modal -->
 <div class="modal" id="profileModal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header"><h2 class="modal-title">Профиль</h2><button class="close-button" id="profileModalCloseButton">&times;</button></div>
@@ -160,7 +196,7 @@
             <input type="hidden" name="event_id" id="modal_event_id">
             <div class="form-field">
                 <label for="modal_id_Title">Название события:</label>
-                {{ event_form.Title }} <!-- Assuming event_form is available in context -->
+                {{ event_form.Title }}
             </div>
             <div class="form-field">
                 <label for="modal_id_StartTime">Время начала:</label>
@@ -195,49 +231,78 @@
 
 {% block extra_js %}
 <script>
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Debounce function to limit API calls during search input
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Constants & Global Variables
+    // --- Constants & Global Variables ---
     const defaultAvatarUrl = "{% static 'images/default_avatar.png' %}";
     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     const dayShortNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
-    const EVENT_VERTICAL_DAY_HEIGHT_PX = 250; // REDUCED from 480
+    const EVENT_VERTICAL_DAY_HEIGHT_PX = 250;
     const KRASNOYARSK_TIMEZONE = 'Asia/Krasnoyarsk';
+    const currentUserId = document.body.dataset.userId; // SINGLE DECLARATION
+    let currentlyViewedUserId = currentUserId;
+
+    // API URLs
+    const API_GET_FRIENDS_URL = '/api/friends/';
+    const API_REMOVE_FRIEND_URL = (userId) => `/api/friend/remove/${userId}/`;
+    const API_GET_OR_CREATE_PRIVATE_CHAT_URL = (userId) => `/api/chat/get_or_create_private/${userId}/`;
+    const API_GET_PENDING_REQUESTS_URL = '/api/friend_requests/pending/';
+    const API_ACCEPT_REQUEST_URL = (reqId) => `/api/friend_request/accept/${reqId}/`;
+    const API_REJECT_REQUEST_URL = (reqId) => `/api/friend_request/reject/${reqId}/`;
+    const API_SEARCH_USERS_URL = (query) => `/api/users/search/?q=${encodeURIComponent(query)}`;
+    const API_SEND_FRIEND_REQUEST_URL = (userId) => `/api/friend/send_request/${userId}/`;
 
     let currentSmallCalendarDate = new Date();
     let selectedStartDate = null;
     let selectedEndDate = null;
 
-    // Helper function to get YYYY-MM-DD string in Krasnoyarsk Timezone
+    // --- Helper function specific to KRT date string ---
     function getKrasnoyarskDateString(dateObj) {
         return new Intl.DateTimeFormat('sv-SE', { timeZone: KRASNOYARSK_TIMEZONE }).format(dateObj);
     }
 
-    // Helper function to convert UTC ISO string to YYYY-MM-DDTHH:MM for KRT display in input
     function convertUTCToKRT_YYYYMMDDTHHMM(utcIsoString) {
         if (!utcIsoString) return '';
-        const date = new Date(utcIsoString); // Parses as UTC
-
-        // Get KRT parts using Intl.DateTimeFormat, ensuring locale doesn't break YYYY-MM-DD or HH:MM
+        const date = new Date(utcIsoString);
         const krtYear = new Intl.DateTimeFormat('en', { year: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
         const krtMonth = new Intl.DateTimeFormat('en', { month: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
         const krtDay = new Intl.DateTimeFormat('en', { day: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
-        // For hour, use a locale that reliably gives 24-hour format, like 'en-GB'
         let krtHour = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: KRASNOYARSK_TIMEZONE }).format(date);
         const krtMinute = new Intl.DateTimeFormat('en-GB', { minute: '2-digit', timeZone: KRASNOYARSK_TIMEZONE }).format(date);
-
-        // Intl.DateTimeFormat might return '24' for hour at midnight, input type datetime-local expects '00'
-        if (krtHour === '24') {
-            krtHour = '00';
-        }
-        
+        if (krtHour === '24') krtHour = '00';
         return `${krtYear}-${krtMonth}-${krtDay}T${String(krtHour).padStart(2,'0')}:${String(krtMinute).padStart(2,'0')}`;
     }
 
-    // DOM Elements
-    const timelineViewContainer = document.getElementById('timelineViewContainer'); // Now right panel
-    const eventFormInline = document.getElementById('eventFormInline'); // Now in center panel
-    const eventFormTitle = document.getElementById('eventFormTitle');
-    const inlineEventIdInput = document.getElementById('inline_event_id');
+    // --- DOM Elements ---
+    const timelineViewContainer = document.getElementById('timelineViewContainer');
+    const eventFormInline = document.getElementById('eventFormInline'); // Kept for potential future use, though hidden
+    // const eventFormTitle = document.getElementById('eventFormTitle'); // part of inline form
+    // const inlineEventIdInput = document.getElementById('inline_event_id'); // part of inline form
     
     const currentSmallMonthEl = document.getElementById('currentSmallMonth');
     const currentSmallYearEl = document.getElementById('currentSmallYear');
@@ -249,13 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatSearchInput = document.getElementById('chatSearchInput');
     const friendListContainer = document.getElementById('friendListContainer');
     const chatListContainer = document.getElementById('chatListContainer');
+    const centerPanel = document.querySelector('.center-panel.editing-panel');
 
     // Profile Modal Elements
-    const profileButton = document.getElementById('headerProfileIcon'); // Assumes this ID is on your header profile icon
+    const profileButton = document.getElementById('headerProfileIcon');
     const profileModal = document.getElementById('profileModal');
     const profileModalCloseButton = document.getElementById('profileModalCloseButton');
     const editProfileLink = document.getElementById('editProfileLink');
-    const profileForm = document.getElementById('profileForm'); // Added ID to form
+    // const profileForm = document.getElementById('profileForm'); // Already defined by event listener
     const profileViewMainInfo = profileModal.querySelector('.profile-view-main-info');
     const profileEditForm = document.getElementById('profileEditForm');
     const privacyEditForm = document.getElementById('privacyEditForm');
@@ -263,28 +329,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveProfileButton = document.getElementById('saveProfileButton');
     const deleteAccountLink = document.getElementById('deleteAccountLink');
 
-    // Event Modal Elements (NEW)
+    // Event Modal Elements
     const eventModal = document.getElementById('eventModal');
     const eventModalTitle = document.getElementById('eventModalTitle');
     const eventModalForm = document.getElementById('eventModalForm');
     const modalEventIdInput = document.getElementById('modal_event_id');
     const eventModalCloseButton = document.getElementById('eventModalCloseButton');
-    const saveEventModalButton = document.getElementById('saveEventModalButton');
+    // const saveEventModalButton = document.getElementById('saveEventModalButton'); // Already defined by event listener
     const cancelEventModalButton = document.getElementById('cancelEventModalButton');
     const deleteEventModalButton = document.getElementById('deleteEventModalButton');
 
-    // Tab switching logic for left panel
-    window.openTab = function(evt, tabName) {
-        let i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tab-content");
-        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
-        tablinks = document.getElementsByClassName("tab-link");
-        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
-        document.getElementById(tabName).style.display = "flex";
-        evt.currentTarget.className += " active";
-        if (tabName === 'friends-tab-content') { loadFriends(); }
-        if (tabName === 'chats-tab-content') { loadChats(); }
+    // Chat View Panel Elements
+    const chatViewPanel = document.getElementById('chatViewPanel');
+    const chatViewHeaderName = document.getElementById('chatViewHeaderName');
+    const chatViewMessagesContainer = document.getElementById('chatViewMessagesContainer');
+    const chatMessageInput = document.getElementById('chatMessageInput');
+    const sendChatMessageButton = document.getElementById('sendChatMessageButton');
+    const chatViewBackButton = document.getElementById('chatViewBackButton');
+
+    // --- Tab switching logic ---
+    const tabLinks = document.querySelectorAll('.left-panel-tabs .tab-link');
+    const tabContents = document.querySelectorAll('.left-panel .tab-content');
+
+    function openTab(targetTabId) {
+        tabContents.forEach(content => {
+            content.style.display = content.id === targetTabId ? 'flex' : 'none';
+        });
+        tabLinks.forEach(link => {
+            if (link.dataset.tab === targetTabId) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        // Load content for the opened tab
+        if (targetTabId === 'friends-tab-content') {
+            if (typeof loadFriends === 'function') loadFriends();
+            else console.error('loadFriends function not found');
+        } else if (targetTabId === 'chats-tab-content') {
+            if (typeof loadChats === 'function') loadChats();
+            else console.error('loadChats function not found');
+        }
     }
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const targetTabId = this.dataset.tab;
+            openTab(targetTabId);
+        });
+    });
 
     // --- Profile Modal Logic ---
     if (profileButton) {
@@ -299,9 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             profileModal.querySelectorAll('.profile-settings-list').forEach(list => list.style.display = '');
         });
     }
-    if (profileModalCloseButton) {
-        profileModalCloseButton.addEventListener('click', () => profileModal.style.display = 'none');
-    }
+    if (profileModalCloseButton) profileModalCloseButton.addEventListener('click', () => profileModal.style.display = 'none');
     if (editProfileLink) {
         editProfileLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -319,14 +412,10 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteAccountLink.addEventListener('click', (e) => {
             e.preventDefault();
             if (confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.')) {
-                // Implement account deletion logic, likely a POST request to a specific URL
-                alert('Аккаунт удален (демонстрация).'); // Placeholder
-                window.location.href = '/'; // Redirect to home or login
+                alert('Аккаунт удален (демонстрация).'); window.location.href = '/';
             }
         });
     }
-    // Add form submission logic if needed (e.g. AJAX for profileForm)
-
 
     // --- Small Calendar Functionality ---
     function renderSmallCalendar() {
@@ -334,822 +423,866 @@ document.addEventListener('DOMContentLoaded', () => {
         const localMonth = currentSmallCalendarDate.getMonth();
         if (currentSmallMonthEl) currentSmallMonthEl.textContent = monthNames[localMonth];
         if (currentSmallYearEl) currentSmallYearEl.textContent = localYear;
-
         const timelineHeaderMonthTitle = document.querySelector('#timelineHeader .timeline-month-title');
-        if (timelineHeaderMonthTitle) {
-            timelineHeaderMonthTitle.textContent = monthNames[localMonth];
-        }
-
+        if (timelineHeaderMonthTitle) timelineHeaderMonthTitle.textContent = monthNames[localMonth];
         if (!smallCalendarDaysBodyEl) return;
         smallCalendarDaysBodyEl.innerHTML = '';
-
-        // Get KRT representation of the 1st of the current localMonth
-        const firstOfDisplayedMonthKRT = new Date(Date.UTC(localYear, localMonth, 1, 0, 0, 0 - (7*60*60*1000) )); // Rough UTC for KRT midnight
+        const firstOfDisplayedMonthKRT = new Date(Date.UTC(localYear, localMonth, 1, 0, 0, 0 - (7*60*60*1000) ) );
         const krtYearForLogic = parseInt(new Intl.DateTimeFormat('en', { year: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(firstOfDisplayedMonthKRT));
-        const krtMonthForLogic = parseInt(new Intl.DateTimeFormat('en', { month: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(firstOfDisplayedMonthKRT)) -1; // 0-indexed
-
+        const krtMonthForLogic = parseInt(new Intl.DateTimeFormat('en', { month: 'numeric', timeZone: KRASNOYARSK_TIMEZONE }).format(firstOfDisplayedMonthKRT)) -1;
         const firstDayOfMonthObject = new Date(krtYearForLogic, krtMonthForLogic, 1);
         const firstDayOfMonthWeekday = firstDayOfMonthObject.toLocaleDateString('en-US', { weekday: 'long', timeZone: KRASNOYARSK_TIMEZONE });
-        // Convert weekday name to number (Mon=0...Sun=6) aligning with typical calendar grids
         const dayNameToIndex = {'Monday':0, 'Tuesday':1, 'Wednesday':2, 'Thursday':3, 'Friday':4, 'Saturday':5, 'Sunday':6};
-        let startingDay = dayNameToIndex[firstDayOfMonthWeekday] !== undefined ? dayNameToIndex[firstDayOfMonthWeekday] : (new Date(localYear, localMonth, 1).getDay() + 6) % 7; // Fallback
-
+        let startingDay = dayNameToIndex[firstDayOfMonthWeekday] !== undefined ? dayNameToIndex[firstDayOfMonthWeekday] : (new Date(localYear, localMonth, 1).getDay() + 6) % 7;
         const daysInMonth = new Date(krtYearForLogic, krtMonthForLogic + 1, 0).getDate();
         const daysInPrevMonth = new Date(krtYearForLogic, krtMonthForLogic, 0).getDate();
-
-        let dateCounter = 1;
-        let nextMonthDateCounter = 1;
-
-        for (let i = 0; i < 6; i++) { // Max 6 weeks
+        let dateCounter = 1, nextMonthDateCounter = 1;
+        for (let i = 0; i < 6; i++) {
             const row = document.createElement('tr');
-            for (let j = 0; j < 7; j++) { // 7 days a week
+            for (let j = 0; j < 7; j++) {
                 const cell = document.createElement('td');
-                const dateNumberDiv = document.createElement('div');
-                dateNumberDiv.classList.add('date-number');
-                
-                let cellRepresentedDateObj; // JS Date object for the current cell
-                let cellDateKRTString;    // YYYY-MM-DD in KRT
-
-                if (i === 0 && j < startingDay) { // Previous month
+                const dateNumberDiv = document.createElement('div'); dateNumberDiv.classList.add('date-number');
+                let cellRepresentedDateObj, cellDateKRTString;
+                if (i === 0 && j < startingDay) {
                     const prevMonthDay = daysInPrevMonth - startingDay + j + 1;
-                    dateNumberDiv.textContent = prevMonthDay;
-                    cell.classList.add('other-month');
+                    dateNumberDiv.textContent = prevMonthDay; cell.classList.add('other-month');
                     cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic - 1, prevMonthDay);
-                } else if (dateCounter > daysInMonth) { // Next month
-                    dateNumberDiv.textContent = nextMonthDateCounter;
-                    cell.classList.add('other-month');
-                    cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic + 1, nextMonthDateCounter);
-                    nextMonthDateCounter++;
-                } else { // Current month
-                    dateNumberDiv.textContent = dateCounter;
-                    cell.classList.add('current-month');
-                    cell.classList.add('calendar-day-mainpage'); 
+                } else if (dateCounter > daysInMonth) {
+                    dateNumberDiv.textContent = nextMonthDateCounter; cell.classList.add('other-month');
+                    cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic + 1, nextMonthDateCounter++);
+                } else {
+                    dateNumberDiv.textContent = dateCounter; cell.classList.add('current-month', 'calendar-day-mainpage');
                     cellRepresentedDateObj = new Date(krtYearForLogic, krtMonthForLogic, dateCounter);
-                    
-                    const todayKRTStr = getKrasnoyarskDateString(new Date());
-                    if (getKrasnoyarskDateString(cellRepresentedDateObj) === todayKRTStr) {
-                        cell.classList.add('today-mainpage');
-                    }
+                    if (getKrasnoyarskDateString(cellRepresentedDateObj) === getKrasnoyarskDateString(new Date())) cell.classList.add('today-mainpage');
                     dateCounter++;
                 }
                 cellDateKRTString = getKrasnoyarskDateString(cellRepresentedDateObj);
-                cell.dataset.date = cellDateKRTString; // Store KRT date string
-                cell.appendChild(dateNumberDiv);
-
-                // Apply selection styles based on KRT strings
-                if (selectedStartDate && selectedEndDate) {
-                    if (cellDateKRTString >= selectedStartDate && cellDateKRTString <= selectedEndDate) {
-                        cell.classList.add('selected-range');
-                    }
-                }
+                cell.dataset.date = cellDateKRTString; cell.appendChild(dateNumberDiv);
+                if (selectedStartDate && selectedEndDate && cellDateKRTString >= selectedStartDate && cellDateKRTString <= selectedEndDate) cell.classList.add('selected-range');
                 if (cellDateKRTString === selectedStartDate) cell.classList.add('selected-start');
                 if (cellDateKRTString === selectedEndDate) cell.classList.add('selected-end');
-                
                 row.appendChild(cell);
             }
             smallCalendarDaysBodyEl.appendChild(row);
             if (dateCounter > daysInMonth && i >= Math.floor((startingDay + daysInMonth -1) / 7) ) break; 
         }
     }
-
     if (prevSmallMonthBtn) prevSmallMonthBtn.addEventListener('click', () => { 
         currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() - 1); 
-        selectedStartDate = null; // Clear selection from previous month
-        selectedEndDate = null;
-        renderSmallCalendar(); 
-        // Update timeline to show the new month
-        const year = currentSmallCalendarDate.getFullYear();
-        const month = currentSmallCalendarDate.getMonth();
-        const firstDayOfMonth = new Date(year, month, 1);
-        const lastDayOfMonth = new Date(year, month + 1, 0);
-        generateTimelineView(firstDayOfMonth, lastDayOfMonth);
+        selectedStartDate = null; selectedEndDate = null; renderSmallCalendar(); 
+        const y = currentSmallCalendarDate.getFullYear(), m = currentSmallCalendarDate.getMonth();
+        generateTimelineView(new Date(y, m, 1), new Date(y, m + 1, 0));
     });
-
     if (nextSmallMonthBtn) nextSmallMonthBtn.addEventListener('click', () => { 
         currentSmallCalendarDate.setMonth(currentSmallCalendarDate.getMonth() + 1); 
-        selectedStartDate = null; // Clear selection from previous month
-        selectedEndDate = null;
-        renderSmallCalendar(); 
-        // Update timeline to show the new month
-        const year = currentSmallCalendarDate.getFullYear();
-        const month = currentSmallCalendarDate.getMonth();
-        const firstDayOfMonth = new Date(year, month, 1);
-        const lastDayOfMonth = new Date(year, month + 1, 0);
-        generateTimelineView(firstDayOfMonth, lastDayOfMonth);
+        selectedStartDate = null; selectedEndDate = null; renderSmallCalendar(); 
+        const y = currentSmallCalendarDate.getFullYear(), m = currentSmallCalendarDate.getMonth();
+        generateTimelineView(new Date(y, m, 1), new Date(y, m + 1, 0));
     });
-    
-    if (smallCalendarDaysBodyEl) {
-        smallCalendarDaysBodyEl.addEventListener('click', (e) => {
+    if (smallCalendarDaysBodyEl) smallCalendarDaysBodyEl.addEventListener('click', (e) => {
             const targetCell = e.target.closest('td');
             if (!targetCell || !targetCell.dataset.date) return;
-
-            const clickedDateStr = targetCell.dataset.date; // This is KRT YYYY-MM-DD
-
-            if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-                selectedStartDate = clickedDateStr; // Store KRT string
-                selectedEndDate = null; 
-            } else if (clickedDateStr < selectedStartDate) { 
-                selectedEndDate = selectedStartDate;
-                selectedStartDate = clickedDateStr; // Store KRT string
-            } else {
-                selectedEndDate = clickedDateStr; // Store KRT string
-            }
-            
-            renderSmallCalendar(); 
+            const clickedDateStr = targetCell.dataset.date;
+        if (!selectedStartDate || (selectedStartDate && selectedEndDate)) { selectedStartDate = clickedDateStr; selectedEndDate = null; } 
+        else if (clickedDateStr < selectedStartDate) { selectedEndDate = selectedStartDate; selectedStartDate = clickedDateStr;} 
+        else { selectedEndDate = clickedDateStr;}
+        renderSmallCalendar(); 
             if (timelineViewContainer) {
-                 // Convert KRT date strings to Date objects representing KRT day boundaries
-                 // The Date objects will represent UTC moments equivalent to 00:00 KRT and 23:59 KRT
-                 const startForTimeline = new Date(selectedStartDate + "T00:00:00+07:00");
-                 const endForTimeline = selectedEndDate ? 
-                                      new Date(selectedEndDate + "T23:59:59.999+07:00") : 
-                                      new Date(selectedStartDate + "T23:59:59.999+07:00");
-                 console.log('Timeline RENDER: generateTimelineView called with KRT-derived Date objects. Selected KRT strings:', selectedStartDate, selectedEndDate);
-                 generateTimelineView(startForTimeline, endForTimeline);
+            const start = new Date(selectedStartDate + "T00:00:00+07:00");
+            const end = selectedEndDate ? new Date(selectedEndDate + "T23:59:59.999+07:00") : new Date(selectedStartDate + "T23:59:59.999+07:00");
+                 generateTimelineView(start, end);
             }
         });
-    }
 
-    // --- Timeline View Generation (Targets right panel) ---
+    // --- Timeline View Generation ---
     async function generateTimelineView(startDate, endDate) {
-        if (!timelineViewContainer) {
-            console.error("timelineViewContainer is null or undefined!");
-            return;
+        if (!timelineViewContainer) return;
+        if (!(startDate instanceof Date) || isNaN(startDate.getTime()) || !(endDate instanceof Date) || isNaN(endDate.getTime())) {
+            timelineViewContainer.innerHTML = '<p class="placeholder-text">Ошибка: Неверные даты.</p>'; return;
         }
-        console.log('generateTimelineView received raw startDate:', startDate, 'endDate:', endDate);
-
-        if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-            console.error("ERROR: startDate is not a valid Date object in generateTimelineView.", startDate);
-            timelineViewContainer.innerHTML = '<p class="placeholder-text">Ошибка: Неверная начальная дата.</p>';
-            return;
-        }
-        if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
-            console.error("ERROR: endDate is not a valid Date object in generateTimelineView.", endDate);
-            timelineViewContainer.innerHTML = '<p class="placeholder-text">Ошибка: Неверная конечная дата.</p>';
-            return;
-        }
-
         timelineViewContainer.innerHTML = '<p class="placeholder-text">Загрузка дней...</p>';
-
-        let currentDate = new Date(startDate); // Use a copy to avoid modifying the passed-in startDate
-        currentDate.setHours(0, 0, 0, 0);     // Normalize to the beginning of the day
-
-        let tempEndDate = new Date(endDate);   // Use a copy
-        tempEndDate.setHours(23, 59, 59, 999); // Normalize to the end of the day for inclusive comparison
-
-        console.log('Normalized loop range: currentDate:', currentDate.toISOString(), 'tempEndDate:', tempEndDate.toISOString());
-
-        if (currentDate > tempEndDate) {
-            console.warn('Warning: currentDate is after tempEndDate. No days will be rendered.', currentDate, tempEndDate);
-            timelineViewContainer.innerHTML = '<p class="placeholder-text">Выбранный диапазон некорректен (начало после конца).</p>';
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        let dayRendered = false;
-
+        let currentDate = new Date(startDate); currentDate.setHours(0,0,0,0);
+        let tempEndDate = new Date(endDate); tempEndDate.setHours(23,59,59,999);
+        if (currentDate > tempEndDate) { timelineViewContainer.innerHTML = '<p class="placeholder-text">Диапазон некорректен.</p>'; return;}
+        const fragment = document.createDocumentFragment(); let dayRendered = false;
         while (currentDate <= tempEndDate) {
             dayRendered = true;
-            console.log('Rendering day in loop:', currentDate.toISOString().split('T')[0]);
-            
-            const dayDateForAPI = getKrasnoyarskDateString(currentDate); // KRT date string
-
-            const dayEntry = document.createElement('div');
-            dayEntry.classList.add('timeline-day-entry-vertical');
-            dayEntry.dataset.date = dayDateForAPI; // Store KRT date string
-
-            const dayLabelDiv = document.createElement('div');
-            dayLabelDiv.classList.add('day-label-main-vertical');
-            
-            const dateNumberSpan = document.createElement('span');
-            dateNumberSpan.classList.add('day-label-date-number');
-            dateNumberSpan.textContent = currentDate.getDate();
-
-            const dayNameSpan = document.createElement('span');
-            dayNameSpan.classList.add('day-label-day-name');
-            dayNameSpan.textContent = dayShortNames[currentDate.getDay()];
-
-            dayLabelDiv.appendChild(dateNumberSpan);
-            dayLabelDiv.appendChild(dayNameSpan);
-
+            const dayDateForAPI = getKrasnoyarskDateString(currentDate);
+            const dayEntry = document.createElement('div'); dayEntry.className = 'timeline-day-entry-vertical'; dayEntry.dataset.date = dayDateForAPI;
+            const dayLabelDiv = document.createElement('div'); dayLabelDiv.className = 'day-label-main-vertical';
+            dayLabelDiv.innerHTML = `<span class="day-label-date-number">${currentDate.getDate()}</span><span class="day-label-day-name">${dayShortNames[currentDate.getDay()]}</span>`;
             dayLabelDiv.addEventListener('click', () => {
-                if (eventModalTitle) eventModalTitle.textContent = 'Создать событие';
-                if (eventModalForm) {
-                    eventModalForm.reset(); 
-                    eventModalForm.action = "{% url 'create_event' %}";
-                    const clickedDate = dayEntry.dataset.date;
-                    const startTimeField = eventModalForm.querySelector('[name="StartTime"]');
-                    const endTimeField = eventModalForm.querySelector('[name="EndTime"]');
-                    if (startTimeField) {
-                        startTimeField.value = clickedDate + 'T09:00'; 
-                    }
-                    if (endTimeField) {
-                        endTimeField.value = clickedDate + 'T10:00';
-                    }
-                    const colourFieldModal = eventModalForm.querySelector('[name="Colour"]');
-                    if (colourFieldModal) colourFieldModal.value = '#007bff';
-                }
-                if (modalEventIdInput) modalEventIdInput.value = ''; 
-                if (deleteEventModalButton) deleteEventModalButton.style.display = 'none';
+                if(eventModalTitle) eventModalTitle.textContent = 'Создать событие';
+                if(eventModalForm) { eventModalForm.reset(); eventModalForm.action = "{% url 'create_event' %}";
+                    eventModalForm.querySelector('[name="StartTime"]').value = dayEntry.dataset.date + 'T09:00';
+                    eventModalForm.querySelector('[name="EndTime"]').value = dayEntry.dataset.date + 'T10:00';
+                    eventModalForm.querySelector('[name="Colour"]').value = '#007bff'; }
+                if(modalEventIdInput) modalEventIdInput.value = ''; if(deleteEventModalButton) deleteEventModalButton.style.display = 'none';
                 openEventModal();
             });
-
-            const dayBodyVertical = document.createElement('div');
-            dayBodyVertical.classList.add('timeline-day-body-vertical');
-
-            const eventArea = document.createElement('div');
-            eventArea.classList.add('event-area-vertical');
-
-            dayBodyVertical.appendChild(eventArea);
-
-            dayEntry.appendChild(dayLabelDiv);
-            dayEntry.appendChild(dayBodyVertical);
-            
-            fragment.appendChild(dayEntry);
-
-            // Pass only eventArea to fetchAndDisplayEventsForVerticalDay
-            // RENAME fetchAndDisplayEventsForVerticalDay to fetchAndDisplayEventsForDayRow
-            // Pass krtDateStrForAPI (dayDateForAPI) to fetchAndDisplayEventsForDayRow
-            await fetchAndDisplayEventsForDayRow(new Date(currentDate), eventArea, dayDateForAPI); 
-            
+            const dayBodyVertical = document.createElement('div'); dayBodyVertical.className = 'timeline-day-body-vertical';
+            const eventArea = document.createElement('div'); eventArea.className = 'event-area-vertical';
+            dayBodyVertical.appendChild(eventArea); dayEntry.appendChild(dayLabelDiv); dayEntry.appendChild(dayBodyVertical); fragment.appendChild(dayEntry);
+            await fetchAndDisplayEventsForDayRow(new Date(currentDate), eventArea, dayDateForAPI, currentlyViewedUserId);
             currentDate.setDate(currentDate.getDate() + 1);
         }
-        
-        if (dayRendered) {
-            console.log('Clearing timelineViewContainer and appending new fragment.');
-            console.log('Fragment childElementCount before append:', fragment.childElementCount); // DEBUG LINE
-            timelineViewContainer.innerHTML = ''; 
-            timelineViewContainer.appendChild(fragment);
-            console.log('timelineViewContainer innerHTML after append:', timelineViewContainer.innerHTML); // DEBUG LINE
-        } else {
-            console.log('No days were rendered. currentDate might have been > tempEndDate initially or loop condition failed.');
-            timelineViewContainer.innerHTML = '<p class="placeholder-text">Нет событий для отображения в данном диапазоне.</p>'; // More specific message
-        }
+        if (dayRendered) { timelineViewContainer.innerHTML = ''; timelineViewContainer.appendChild(fragment);}
+        else { timelineViewContainer.innerHTML = '<p class="placeholder-text">Нет событий.</p>';}
     }
-
-    // RENAMED from fetchAndDisplayEventsForVerticalDay
-    async function fetchAndDisplayEventsForDayRow(dateObj, eventAreaElement, krtDateStrForAPI) {
-        // const dateStr = dateObj.toISOString().split('T')[0]; // OLD: This is YYYY-MM-DD in UTC
-        
+    async function fetchAndDisplayEventsForDayRow(dateObj, eventAreaElement, krtDateStrForAPI, targetUserId) {
         eventAreaElement.innerHTML = ''; 
         try {
-            // API call uses krtDateStrForAPI
-            const response = await fetch(`/api/events_for_day/${krtDateStrForAPI}/`); 
-            if (!response.ok) {
-                console.error(`Error fetching events for ${krtDateStrForAPI}: ${response.status}`);
-                eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка</span>';
-                return;
-            }
-            const rawEvents = await response.json();
-            const events = rawEvents.filter(e => e && typeof e === 'object' && e.StartTime && e.EndTime && e.Title);
-
-            if (events.length === 0) {
-                const placeholder = document.createElement('span');
-                placeholder.classList.add('timeline-event-placeholder');
-                placeholder.textContent = 'нет событий на день';
-                eventAreaElement.appendChild(placeholder);
-                return;
-            }
-            
-            // Define view window based on 6 AM KRT for krtDateStrForAPI, converted to true UTC
-            const viewWindowStart_KRT_asText = krtDateStrForAPI + "T06:00:00";
-            // Use +07:00 for Krasnoyarsk time (UTC+7)
-            const viewWindowStartForDay_TrueUTC = new Date(Date.parse(viewWindowStart_KRT_asText + "+07:00"));
-            const viewWindowEndForDay_TrueUTC = new Date(viewWindowStartForDay_TrueUTC.getTime() + 24 * 60 * 60 * 1000);
-
-            const TOTAL_MINUTES_IN_TIMELINE_VIEW = 24 * 60;
-
+            const response = await fetch(`/api/user_events/${targetUserId}/${krtDateStrForAPI}/`);
+            if (!response.ok) { eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка</span>'; return;}
+            const events = (await response.json()).filter(e => e && e.StartTime && e.EndTime && e.Title);
+            if (events.length === 0) { eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">нет событий</span>'; return;}
+            const viewWindowStartForDay_TrueUTC = new Date(Date.parse(krtDateStrForAPI + "T06:00:00+07:00"));
+            const viewWindowEndForDay_TrueUTC = new Date(viewWindowStartForDay_TrueUTC.getTime() + 24*60*60*1000);
+            const TOTAL_MINUTES_IN_VIEW = 1440;
             let processedEvents = events.map(event => {
-                // Ensure StartTime and EndTime strings are parsed as UTC if they are naive
-                const startTimeStr = event.StartTime;
-                const endTimeStr = event.EndTime;
-
-                const ensureUTC = (dateStr) => {
-                    if (!dateStr) return null;
-                    // Check if it already has timezone info (Z or +/-HH:MM or +/-HHMM)
-                    if (dateStr.endsWith('Z') || /[+\-]\d{2}:?\d{2}$/.test(dateStr)) {
-                        return new Date(dateStr);
-                    }
-                    // If naive (e.g., YYYY-MM-DDTHH:MM:SS), append 'Z' to parse as UTC
-                    return new Date(dateStr + 'Z');
-                };
-
-                let actualStart = ensureUTC(startTimeStr);
-                let actualEnd = ensureUTC(endTimeStr);
-
-                if (!actualStart || !actualEnd) return null; // Invalid date string
-
-                // Clip event start and end times to the KRT-based window (viewWindowStartForDay_TrueUTC)
-                let clippedStart_UTC = actualStart.getTime() < viewWindowStartForDay_TrueUTC.getTime() ? viewWindowStartForDay_TrueUTC : actualStart;
-                let clippedEnd_UTC = actualEnd.getTime() > viewWindowEndForDay_TrueUTC.getTime() ? viewWindowEndForDay_TrueUTC : actualEnd;
-
-                if (clippedStart_UTC.getTime() >= clippedEnd_UTC.getTime()) return null;
-
-                // Calculate startMinutesInWindow relative to viewWindowStartForDay_TrueUTC
-                let startMinutesInWindow = (clippedStart_UTC.getTime() - viewWindowStartForDay_TrueUTC.getTime()) / (60 * 1000);
-                startMinutesInWindow = Math.max(0, startMinutesInWindow); // Ensure non-negative
-                
-                let durationInWindowMinutes = (clippedEnd_UTC.getTime() - clippedStart_UTC.getTime()) / (1000 * 60);
-                durationInWindowMinutes = Math.max(15, durationInWindowMinutes); 
-
-                if (startMinutesInWindow + durationInWindowMinutes > TOTAL_MINUTES_IN_TIMELINE_VIEW) {
-                    durationInWindowMinutes = TOTAL_MINUTES_IN_TIMELINE_VIEW - startMinutesInWindow;
-                }
-                if (durationInWindowMinutes <= 0) return null;
-
-                return {
-                    ...event,
-                    id: event.id,
-                    title: event.Title,
-                    color: event.Colour,
-                    originalStartTime: actualStart, 
-                    originalEndTime: actualEnd,
-                    startMinutes: startMinutesInWindow,
-                    durationMinutes: durationInWindowMinutes,
-                    leftPercent: (startMinutesInWindow / TOTAL_MINUTES_IN_TIMELINE_VIEW) * 100,
-                    widthPercent: (durationInWindowMinutes / TOTAL_MINUTES_IN_TIMELINE_VIEW) * 100, // Removed Math.max and large minimum
-                };
+                const ensureUTC = (dStr) => dStr.endsWith('Z') || /[+\-]\d{2}:?\d{2}$/.test(dStr) ? new Date(dStr) : new Date(dStr+'Z');
+                let actualStart = ensureUTC(event.StartTime), actualEnd = ensureUTC(event.EndTime);
+                if (!actualStart || !actualEnd) return null;
+                let cStart = actualStart < viewWindowStartForDay_TrueUTC ? viewWindowStartForDay_TrueUTC : actualStart;
+                let cEnd = actualEnd > viewWindowEndForDay_TrueUTC ? viewWindowEndForDay_TrueUTC : actualEnd;
+                if (cStart >= cEnd) return null;
+                let startM = Math.max(0, (cStart.getTime() - viewWindowStartForDay_TrueUTC.getTime())/60000);
+                let durationM = Math.max(15, (cEnd.getTime() - cStart.getTime())/60000);
+                if (startM + durationM > TOTAL_MINUTES_IN_VIEW) durationM = TOTAL_MINUTES_IN_VIEW - startM;
+                if (durationM <= 0) return null;
+                return {...event, originalStartTime: actualStart, originalEndTime: actualEnd, startMinutes: startM, durationMinutes: durationM,
+                    leftPercent: (startM / TOTAL_MINUTES_IN_VIEW) * 100, widthPercent: (durationM / TOTAL_MINUTES_IN_VIEW) * 100 };
             }).filter(e => e !== null);
-
-            processedEvents.sort((a, b) => a.startMinutes - b.startMinutes || (b.startMinutes + b.durationMinutes) - (a.startMinutes + a.durationMinutes));
-
-            const eventHeightPx = 60; 
-            const eventGapPx = 6;   
-            
-            processedEvents.forEach(event => event.lane = 0);
-
-            for (let i = 0; i < processedEvents.length; i++) {
-                const currentEvent = processedEvents[i];
-                let assignedLane = 0;
-                let conflictResolved = false;
-                while(!conflictResolved) {
-                    let inConflictWithOtherInLane = false;
-                    for (let j = 0; j < i; j++) { 
-                        const placedEvent = processedEvents[j];
-                        if (placedEvent.lane === assignedLane) { 
-                            const currentEventEndM = currentEvent.startMinutes + currentEvent.durationMinutes;
-                            const placedEventEndM = placedEvent.startMinutes + placedEvent.durationMinutes;
-                            if (currentEvent.startMinutes < placedEventEndM && currentEventEndM > placedEvent.startMinutes) {
-                                inConflictWithOtherInLane = true;
-                                break; 
-                            }
-                        }
-                    }
-                    if (!inConflictWithOtherInLane) {
-                        currentEvent.lane = assignedLane;
-                        conflictResolved = true;
-                    } else {
-                        assignedLane++; 
-                    }
-                }
-            }
-            
-            let maxLanesUsed = 0;
-            processedEvents.forEach(e => maxLanesUsed = Math.max(maxLanesUsed, e.lane + 1));
-            eventAreaElement.style.minHeight = `${maxLanesUsed * (eventHeightPx + eventGapPx) + eventGapPx}px`;
-
+            processedEvents.sort((a,b) => a.startMinutes - b.startMinutes || (b.startMinutes+b.durationMinutes) - (a.startMinutes+a.durationMinutes));
+            const eventHeightPx = 60, eventGapPx = 6; processedEvents.forEach(e => e.lane = 0);
+            for (let i=0; i < processedEvents.length; i++) { let current = processedEvents[i], lane = 0, conflict = false;
+                do { conflict = false; for (let j=0; j < i; j++) { let placed = processedEvents[j];
+                    if (placed.lane === lane && current.startMinutes < (placed.startMinutes+placed.durationMinutes) && (current.startMinutes+current.durationMinutes) > placed.startMinutes) { conflict=true; lane++; break; }}
+                } while (conflict); current.lane = lane; }
+            eventAreaElement.style.minHeight = `${processedEvents.reduce((max,e)=>Math.max(max,e.lane+1),0)*(eventHeightPx+eventGapPx)+eventGapPx}px`;
             processedEvents.forEach(event => {
-                const eventItem = document.createElement('div');
-                eventItem.classList.add('timeline-event-item'); 
-                eventItem.dataset.eventId = event.id;
-                eventItem.style.backgroundColor = event.color || '#007bff';
-                
-                eventItem.style.position = 'absolute';
-                eventItem.style.left = `${event.leftPercent}%`;
-                const adjustedWidth = event.widthPercent >= 99 ? event.widthPercent : event.widthPercent - 0.2;
-                eventItem.style.width = `${adjustedWidth}%`; 
-                
-                eventItem.style.top = `${event.lane * (eventHeightPx + eventGapPx) + eventGapPx}px`;
-                eventItem.style.height = `${eventHeightPx}px`;
-
-                // Display time and tooltip in Krasnoyarsk Time
-                const krtDisplayOptions = { timeZone: KRASNOYARSK_TIMEZONE, hour: '2-digit', minute:'2-digit' };
-                const krtTooltipOptions = { timeZone: KRASNOYARSK_TIMEZONE, year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-
-                eventItem.innerHTML = `
-                    <div class="timeline-event-time-start">${event.originalStartTime.toLocaleTimeString('ru-RU', krtDisplayOptions)}</div>
-                    <strong class="timeline-event-title">${event.title}</strong>`;
-                
-                const startKRTStr = event.originalStartTime.toLocaleString('ru-RU', krtTooltipOptions);
-                const endKRTStr = event.originalEndTime.toLocaleString('ru-RU', krtTooltipOptions);
-                eventItem.setAttribute('title', `${event.title} (${startKRTStr} - ${endKRTStr})`);
-                
-                eventItem.addEventListener('click', () => {
-                    openModalForEdit(event.id);
-                });
-                eventAreaElement.appendChild(eventItem);
+                const item = document.createElement('div'); item.className = 'timeline-event-item'; item.dataset.eventId = event.id;
+                item.style.cssText = `background-color:${event.Colour|| '#007bff'};position:absolute;left:${event.leftPercent}%;width:${Math.min(99.8,event.widthPercent-.2)}%;top:${event.lane*(eventHeightPx+eventGapPx)+eventGapPx}px;height:${eventHeightPx}px;`;
+                const krtDispOpts = {timeZone:KRASNOYARSK_TIMEZONE,hour:'2-digit',minute:'2-digit'}, krtTipOpts = {...krtDispOpts,year:'numeric',month:'numeric',day:'numeric'};
+                item.innerHTML = `<div class="timeline-event-time-start">${event.originalStartTime.toLocaleTimeString('ru-RU',krtDispOpts)}</div><strong class="timeline-event-title">${event.Title}</strong>`;
+                item.title = `${event.Title} (${event.originalStartTime.toLocaleString('ru-RU',krtTipOpts)} - ${event.originalEndTime.toLocaleString('ru-RU',krtTipOpts)})`;
+                item.addEventListener('click', () => openModalForEdit(event.id)); eventAreaElement.appendChild(item);
             });
-
-        } catch (error) {
-            console.error(`Failed to fetch or parse events for ${krtDateStrForAPI}:`, error);
-            eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка загрузки событий</span>';
-        }
+        } catch (error) { eventAreaElement.innerHTML = '<span class="timeline-event-placeholder">Ошибка загрузки</span>'; }
     }
 
-    // --- Event Form (Inline) Functionality (Targets center panel) ---
-    // Consider hiding or removing this section now that we have a modal
-    // For now, I will hide it via CSS and comment out its JS logic initiation if any.
-    const inlineFormContainer = document.querySelector('.event-form-container');
-    if (inlineFormContainer) {
-        inlineFormContainer.style.display = 'none'; // Hide it now
-    }
-    // function updateEventFormForRange(startDateStr, endDateStr) { ... } // OLD
-    // async function openEventFormForEdit(eventId, displayedStartTimeStr, displayedEndTimeStr) { ... } // OLD
-    // if (eventFormInline) { eventFormInline.addEventListener('submit', ... ); } // OLD
-
-    // --- NEW: Modal Event Form Functions ---
+    // --- Modal Event Form ---
     async function openModalForEdit(eventId) {
         if (!eventModalForm) return;
         try {
-            const response = await fetch(`/api/event_detail/${eventId}/`);
-            if (!response.ok) throw new Error('Failed to fetch event details for modal.');
-            const eventData = await response.json();
-
-            if (eventModalTitle) eventModalTitle.textContent = 'Редактировать событие';
-            if (modalEventIdInput) modalEventIdInput.value = eventData.id;
-            eventModalForm.action = `/edit_event/${eventData.id}/`;
-
-            // Populate form fields in modal
-            eventModalForm.querySelector('[name="Title"]').value = eventData.Title || '';
-            eventModalForm.querySelector('[name="StartTime"]').value = convertUTCToKRT_YYYYMMDDTHHMM(eventData.StartTime);
-            eventModalForm.querySelector('[name="EndTime"]').value = convertUTCToKRT_YYYYMMDDTHHMM(eventData.EndTime);
-            eventModalForm.querySelector('[name="Description"]').value = eventData.Description || '';
-            eventModalForm.querySelector('[name="event_type"]').value = eventData.event_type || ''; // Ensure a default if not present
-            
-            let colorVal = eventData.Colour;
-            if (!colorVal || typeof colorVal !== 'string' || !colorVal.match(/^#[0-9a-fA-F]{6}$/)) {
-                colorVal = '#007bff'; 
-            }
-            eventModalForm.querySelector('[name="Colour"]').value = colorVal;
-
-            if (deleteEventModalButton) deleteEventModalButton.style.display = 'inline-block'; // Show delete button for existing events
-            openEventModal();
-        } catch (error) {
-            console.error('Error opening event for modal edit:', error);
-            alert('Не удалось загрузить данные события для редактирования.');
-        }
+            const response = await fetch(`/api/event_detail/${eventId}/`); if (!response.ok) throw new Error('Fetch fail');
+            const d = await response.json(); if(eventModalTitle) eventModalTitle.textContent = 'Редактировать событие';
+            if(modalEventIdInput) modalEventIdInput.value = d.id; eventModalForm.action = `/edit_event/${d.id}/`;
+            eventModalForm.querySelector('[name="Title"]').value=d.Title||''; eventModalForm.querySelector('[name="StartTime"]').value=convertUTCToKRT_YYYYMMDDTHHMM(d.StartTime);
+            eventModalForm.querySelector('[name="EndTime"]').value=convertUTCToKRT_YYYYMMDDTHHMM(d.EndTime); eventModalForm.querySelector('[name="Description"]').value=d.Description||'';
+            eventModalForm.querySelector('[name="event_type"]').value=d.event_type||'personal'; eventModalForm.querySelector('[name="Colour"]').value=(d.Colour && d.Colour.match(/^#[0-9a-fA-F]{6}$/))?d.Colour:'#007bff';
+            if(deleteEventModalButton) deleteEventModalButton.style.display = 'inline-block'; openEventModal();
+        } catch (error) { alert('Не удалось загрузить событие.'); }
     }
-
-    if (eventModalForm) {
-        eventModalForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(eventModalForm);
-            const url = eventModalForm.action;
-            const method = 'POST';
-
-            try {
-                const response = await fetch(url, { method, body: formData, headers: {'X-CSRFToken': formData.get('csrfmiddlewaretoken')} });
-                // Check if response is okay AND if it's JSON before trying to parse
-                if (response.ok) {
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                        const responseData = await response.json();
-                        // Changed from responseData.success to responseData.status === "success"
-                        if (responseData.status === "success") { 
-                            alert(responseData.message || 'Событие сохранено!'); // Use message from backend
-                            closeEventModal();
-                            // Refresh timeline
-                            if (selectedStartDate && timelineViewContainer) {
-                                 const start = new Date(selectedStartDate);
-                                 const end = selectedEndDate ? new Date(selectedEndDate) : new Date(selectedStartDate);
-                                 generateTimelineView(start, end);
-                            } else {
-                                const today = new Date();
-                                const currentMonth = today.getMonth();
-                                const currentYear = today.getFullYear();
-                                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-                                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-                                generateTimelineView(firstDayOfMonth, lastDayOfMonth); // Refresh current month
-                            }
-                        } else {
-                            // Display errors more gracefully inside the modal
-                            let errorMessages = responseData.message || 'Не удалось сохранить событие.';
-                            if (responseData.errors) {
-                                for (const field in responseData.errors) {
-                                    errorMessages += `\n- ${field}: ${responseData.errors[field].join(', ')}`;
-                                }
-                            }
-                            alert('Ошибка: ' + errorMessages);
-                        }
-                    } else {
-                        // Handle non-JSON responses if necessary, or log an error
-                        const textResponse = await response.text();
-                        console.error("Server responded with non-JSON:", response.status, textResponse);
-                        alert('Ошибка сервера: получен неожиданный ответ. Пожалуйста, попробуйте еще раз.');
-                    }
-                } else {
-                    // Handle HTTP errors (e.g., 400, 404, 500)
-                    let errorText = 'Ошибка сервера. Пожалуйста, попробуйте еще раз.';
-                    try {
-                        const errorData = await response.json(); // Try to parse error as JSON
-                        errorText = errorData.message || (errorData.errors ? JSON.stringify(errorData.errors) : errorText);
-                         if (errorData.errors) {
-                            let messages = [];
-                            for (const field in errorData.errors) {
-                                messages.push(`${field}: ${errorData.errors[field].join(', ')}`);
-                            }
-                            errorText = `Пожалуйста, исправьте ошибки: \n${messages.join('\n')}`;
-                        } else if (errorData.message) {
-                            errorText = errorData.message;
-                        }
-                    } catch (e) {
-                        // If error response is not JSON, use default message or response.statusText
-                        errorText = `Ошибка ${response.status}: ${response.statusText}. Пожалуйста, попробуйте еще раз.`;
-                        console.error("Error parsing error response or non-JSON error response", e);
-                    }
-                    alert(errorText);
-                }
-            } catch (error) {
-                console.error('Modal form submission error:', error);
-                alert('Произошла ошибка при отправке формы. Проверьте консоль для деталей.');
-            }
-        });
-    }
-
-    if (deleteEventModalButton) {
-        deleteEventModalButton.addEventListener('click', async function() {
-            const eventId = modalEventIdInput.value;
-            if (!eventId) return;
-
-            if (confirm('Вы уверены, что хотите удалить это событие?')) {
-                try {
-                    const response = await fetch(`/event/delete/${eventId}/`, {
-                        method: 'POST', 
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'Content-Type': 'application/json'
-                        },
-                    });
-
-                    if (response.ok) {
-                        const responseData = await response.json();
-                        // Changed from responseData.success to responseData.status === "success"
-                        if (responseData.status === "success") {
-                            alert(responseData.message || 'Событие удалено!'); // Use message from backend
-                            closeEventModal();
-                            // Refresh timeline (same logic as after save)
-                            if (selectedStartDate && timelineViewContainer) {
-                                 const start = new Date(selectedStartDate);
-                                 const end = selectedEndDate ? new Date(selectedEndDate) : new Date(selectedStartDate);
-                                 generateTimelineView(start, end);
-                            } else {
-                               const today = new Date();
-                                const currentMonth = today.getMonth();
-                                const currentYear = today.getFullYear();
-                                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-                                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-                                generateTimelineView(firstDayOfMonth, lastDayOfMonth); // Refresh current month
-                            }
-                        } else {
-                            alert('Ошибка при удалении: ' + (responseData.message || 'Не удалось удалить событие.'));
-                        }
-                    } else {
-                        const errorData = await response.json().catch(() => ({})); // Try to get JSON error or empty obj
-                        alert('Ошибка сервера при удалении: ' + (errorData.message || `Код ${response.status}`));
-                    }
-                } catch (error) {
-                    console.error('Delete event error:', error);
-                    alert('Произошла ошибка при удалении события. Проверьте консоль.');
-                }
-            }
-        });
-    }
-
-    // --- Event Modal Open/Close Functions (NEW) ---
-    function openEventModal() {
-        if (eventModal) eventModal.style.display = 'flex';
-    }
-
-    function closeEventModal() {
-        if (eventModal) eventModal.style.display = 'none';
-        if (eventModalForm) eventModalForm.reset();
-        if (modalEventIdInput) modalEventIdInput.value = ''; // Clear event ID
-        if (deleteEventModalButton) deleteEventModalButton.style.display = 'none'; // Hide delete button
-    }
-
-    if (eventModalCloseButton) {
-        eventModalCloseButton.addEventListener('click', closeEventModal);
-    }
-    if (cancelEventModalButton) {
-        cancelEventModalButton.addEventListener('click', closeEventModal);
-    }
-    // Close modal if user clicks outside of modal-content (optional)
-    window.addEventListener('click', (event) => {
-        if (event.target === eventModal) { // Clicked on the modal backdrop
-            closeEventModal();
-        }
-    });
-
-    // --- Dynamic Loading for Friends and Chats --- 
-    async function loadFriends() {
-        if (!friendListContainer) return;
-        friendListContainer.innerHTML = '<p class="placeholder-text">Загрузка друзей...</p>';
+    if (eventModalForm) eventModalForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); const formData = new FormData(eventModalForm), url = eventModalForm.action;
         try {
-            // This URL should return JSON: [{id, username, profile_picture_url, ...}, ...]
-            const response = await fetch("{% url 'friend_list_api' %}"); // IMPORTANT: Changed to 'friend_list_api'
-            if (!response.ok) { throw new Error(`Network response was not ok for friends: ${response.status}`); }
-            const friends = await response.json();
+            const response = await fetch(url, {method:'POST',body:formData,headers:{'X-CSRFToken':formData.get('csrfmiddlewaretoken')}});
+            if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
+                const d = await response.json(); if (d.status === "success") { alert(d.message||'Сохранено!'); closeEventModal();
+                    if (selectedStartDate) generateTimelineView(new Date(selectedStartDate+"T00:00:00+07:00"),selectedEndDate?new Date(selectedEndDate+"T23:59:59.999+07:00"):new Date(selectedStartDate+"T23:59:59.999+07:00"));
+                    else {const t=new Date(); generateTimelineView(new Date(t.getFullYear(),t.getMonth(),1),new Date(t.getFullYear(),t.getMonth()+1,0));}
+                } else { let errs=d.message||'Не удалось сохранить.'; if(d.errors)errs+=Object.entries(d.errors).map(([f,e])=>`\n- ${f}: ${e.join(',')}`).join(''); alert('Ошибка: '+errs);}
+            } else { alert('Ошибка сервера.');}
+        } catch (error) { alert('Ошибка отправки формы.');}
+    });
+    if (deleteEventModalButton) deleteEventModalButton.addEventListener('click', async function() {
+        const eventId = modalEventIdInput.value; if (!eventId || !confirm('Удалить событие?')) return;
+        try {
+            const response = await fetch(`/event/delete/${eventId}/`,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}});
+            if (response.ok) { const d = await response.json(); if (d.status === "success") { alert(d.message||'Удалено!'); closeEventModal();
+                if (selectedStartDate) generateTimelineView(new Date(selectedStartDate+"T00:00:00+07:00"),selectedEndDate?new Date(selectedEndDate+"T23:59:59.999+07:00"):new Date(selectedStartDate+"T23:59:59.999+07:00"));
+                else {const t=new Date(); generateTimelineView(new Date(t.getFullYear(),t.getMonth(),1),new Date(t.getFullYear(),t.getMonth()+1,0));}
+            } else alert('Ошибка: '+(d.message||'Не удалось удалить.'));} 
+            else {const errD=await response.json().catch(()=>({}));alert('Ошибка сервера: '+(errD.message||`Код ${response.status}`));}
+        } catch (error) { alert('Ошибка удаления.');}
+    });
+    function openEventModal() { if (eventModal) eventModal.style.display = 'flex'; }
+    function closeEventModal() { if (eventModal) eventModal.style.display='none'; if(eventModalForm)eventModalForm.reset(); if(modalEventIdInput)modalEventIdInput.value=''; if(deleteEventModalButton)deleteEventModalButton.style.display='none';}
+    if(eventModalCloseButton) eventModalCloseButton.addEventListener('click', closeEventModal);
+    if(cancelEventModalButton) cancelEventModalButton.addEventListener('click', closeEventModal);
+    window.addEventListener('click', (event)=>{if(event.target===eventModal)closeEventModal();});
 
-            friendListContainer.innerHTML = '';
-            if (friends.length === 0) {
-                friendListContainer.innerHTML = '<p class="placeholder-text">Друзей не найдено.</p>';
+    // --- View Toggling & Chat ---
+    function showTimelineView() {
+        stopChatPolling(); // Stop polling when leaving chat view
+        console.log("Attempting to show Timeline View");
+        if (timelineViewContainer) timelineViewContainer.style.display = '';
+        if (centerPanel) centerPanel.style.display = '';
+        if (chatViewPanel) chatViewPanel.style.display = 'none';
+        const timelineHeaderControls = document.querySelector('.timeline-header-controls');
+        if (timelineHeaderControls) timelineHeaderControls.style.display = 'flex';
+        const timelineUserDisplay = document.getElementById('timelineUserDisplay');
+        if (timelineUserDisplay && currentlyViewedUserId === currentUserId) {
+            timelineUserDisplay.textContent = 'Мое расписание';
+        } 
+        console.log("Timeline View should be visible now.");
+    }
+
+    function showChatView(roomId, chatName, isGroup = false, creatorId = null, participantIds = []) {
+        stopChatPolling(); // Stop any previous polling before starting a new one
+        console.log(`Attempting to show Chat View for: ${chatName} (ID: ${roomId})`);
+        
+        if (timelineViewContainer) timelineViewContainer.style.display = 'none';
+        if (centerPanel) centerPanel.style.display = 'none';
+        if (eventModal && eventModal.style.display !== 'none') closeEventModal();
+        
+        if (chatViewPanel) chatViewPanel.style.display = 'flex';
+        if (chatViewHeaderName) chatViewHeaderName.textContent = chatName || 'Чат';
+        if (chatViewPanel) chatViewPanel.dataset.currentRoomId = roomId;
+
+        const addParticipantBtn = document.getElementById('chatViewAddParticipantButton');
+        const leaveGroupBtn = document.getElementById('chatViewLeaveGroupButton');
+
+        if (isGroup) {
+            if (addParticipantBtn) addParticipantBtn.style.display = 'inline-block';
+            if (leaveGroupBtn) leaveGroupBtn.style.display = 'inline-block';
+            if(chatViewPanel) {
+                chatViewPanel.dataset.isGroup = 'true';
+                chatViewPanel.dataset.creatorId = creatorId || '';
+                chatViewPanel.dataset.participantIds = JSON.stringify(participantIds || []);
+            }
+        } else {
+            if (addParticipantBtn) addParticipantBtn.style.display = 'none';
+            if (leaveGroupBtn) leaveGroupBtn.style.display = 'none';
+            if(chatViewPanel) {
+                 chatViewPanel.dataset.isGroup = 'false';
+                 chatViewPanel.dataset.participantIds = JSON.stringify(participantIds || []);
+            }
+        }
+        
+        const timelineHeaderControls = document.querySelector('.timeline-header-controls');
+        if (timelineHeaderControls) timelineHeaderControls.style.display = 'none';
+
+        if (typeof fetchAndDisplayMessages === 'function') {
+            fetchAndDisplayMessages(roomId, true); // Initial load, scroll to bottom
+            
+            chatPollingIntervalId = setInterval(() => {
+                console.log(`Polling for messages in room ${roomId}...`);
+                fetchAndDisplayMessages(roomId, false); // Subsequent loads
+            }, POLLING_INTERVAL_MS);
+            console.log(`Chat polling started for room ${roomId}, interval ID: ${chatPollingIntervalId}`);
+        } else {
+            console.error('fetchAndDisplayMessages is not defined');
+        }
+        console.log("Chat View should be visible now.");
+    }
+
+    async function fetchAndDisplayMessages(roomId, scrollToBottom = false) {
+        if (!chatViewMessagesContainer) return;
+        
+        const isUserAtBottom = chatViewMessagesContainer.scrollHeight - chatViewMessagesContainer.clientHeight <= chatViewMessagesContainer.scrollTop + 1;
+
+        // For initial load, show placeholder. For polls, maybe not, to prevent flicker.
+        if (scrollToBottom) { 
+             chatViewMessagesContainer.innerHTML = '<p class="placeholder-text">Загрузка сообщений...</p>';
+        }
+
+        try {
+            const response = await fetch(`/api/chat_messages/${roomId}/`); 
+            if (!response.ok) {
+                const eData = await response.json().catch(()=>({}));
+                if (scrollToBottom) { // Only show error over content on initial load
+                    chatViewMessagesContainer.innerHTML = `<p class="placeholder-text" style="color:red;">Ошибка: ${eData.message || 'Не удалось загрузить сообщения'}</p>`;
+                }
+                console.error("Failed to fetch messages:", eData);
                 return;
             }
-            friends.forEach(friend => {
-                const item = document.createElement('div');
-                item.classList.add('friend-item');
-                item.innerHTML = `
-                    <img src="${friend.profile_picture_url || defaultAvatarUrl}" alt="avatar" class="friend-avatar" onerror="this.src='${defaultAvatarUrl}'">
-                    <div class="friend-info">
-                        <span class="friend-name">${friend.username}</span>
-                        <a href="{% url 'start_or_get_chat' 0 %}user_id=${friend.id}".replace('0?user_id=', friend.id + '?user_id=') class="friend-message-link">Написать сообщение</a>
+            const messages = await response.json(); 
+
+            // Simple check to avoid re-render if message list hasn't changed (can be improved)
+            const currentMessagesHTML = Array.from(chatViewMessagesContainer.querySelectorAll('.chat-message-item')).map(el => el.outerHTML).join('');
+            const newMessagesHTML = messages.map(msg => {
+                 const item = document.createElement('div'); 
+                 item.className=`chat-message-item ${msg.sender_id.toString() === currentUserId.toString() ?'sent':'received'}`;
+                 const time=new Date(msg.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+                 item.innerHTML =
+                    `<div class="message-avatar-container">
+                        <img src="${msg.sender_profile_picture_url||defaultAvatarUrl}" class="message-avatar" alt="${msg.sender_username}" onerror="this.src='${defaultAvatarUrl}'">
                     </div>
-                    <button class="friend-options" data-friend-id="${friend.id}">⋮</button> 
-                `; // TODO: Add actual options for friend-options button (e.g. remove friend)
-                friendListContainer.appendChild(item);
-            });
-        } catch (error) {
-            console.error("Failed to load friends:", error);
-            friendListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка загрузки друзей.</p>';
+                    <div class="message-content-container">
+                        <div class="message-sender-name">${msg.sender_username}</div>
+                        <div class="message-text">${msg.content}</div>
+                        <div class="message-timestamp">${time}</div>
+                    </div>`;
+                return item.outerHTML;
+            }).join('');
+
+            if (!scrollToBottom && currentMessagesHTML === newMessagesHTML && messages.length > 0) {
+                // console.log("No new messages based on HTML content comparison.");
+                return;
+            }
+            
+            chatViewMessagesContainer.innerHTML = ''; 
+            if (messages.length === 0) {
+                chatViewMessagesContainer.innerHTML = '<p class="placeholder-text">Нет сообщений в этом чате.</p>';
+                return;
+            }
+            messages.forEach(msg => { 
+                const item = document.createElement('div'); 
+                item.className = `chat-message-item ${msg.sender_id.toString() === currentUserId.toString() ? 'sent' : 'received'}`;
+                const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+                item.innerHTML =
+                    `<div class="message-avatar-container">
+                        <img src="${msg.sender_profile_picture_url||defaultAvatarUrl}" class="message-avatar" alt="${msg.sender_username}" onerror="this.src='${defaultAvatarUrl}'">
+                    </div>
+                    <div class="message-content-container">
+                        <div class="message-sender-name">${msg.sender_username}</div>
+                        <div class="message-text">${msg.content}</div>
+                        <div class="message-timestamp">${time}</div>
+                    </div>`;
+                chatViewMessagesContainer.appendChild(item); 
+            }); 
+            
+            if (scrollToBottom || isUserAtBottom) {
+                chatViewMessagesContainer.scrollTop = chatViewMessagesContainer.scrollHeight;
+            }
+        } catch (error) { 
+            console.error("Error in fetchAndDisplayMessages:", error);
+            if (scrollToBottom || !chatViewMessagesContainer.hasChildNodes() || chatViewMessagesContainer.innerHTML.includes('placeholder-text')) {
+                chatViewMessagesContainer.innerHTML = `<p class="placeholder-text" style="color:red;">Ошибка при загрузке сообщений: ${error.message}</p>`;
+            }
         }
     }
+    if (sendChatMessageButton && chatMessageInput) {
+        sendChatMessageButton.addEventListener('click', async () => {
+            const content=chatMessageInput.value.trim(),roomId=chatViewPanel.dataset.currentRoomId; if(!content||!roomId){alert('Сообщение пустое или чат не выбран.');return;}
+            try { const r=await fetch(`/chat/${roomId}/send/`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':getCookie('csrftoken')},body:`content=${encodeURIComponent(content)}`});
+                if(r.ok){
+                    chatMessageInput.value = '';
+                    fetchAndDisplayMessages(roomId, true); // Fetch and scroll to bottom
+                    if(typeof loadChats === 'function') loadChats(); 
+                } else { 
+                    const e=await r.json().catch(()=>({}));alert(`Ошибка: ${e.message||'Не удалось отправить.'}`);
+                }
+            } catch(error){alert('Ошибка отправки.');}});
+        chatMessageInput.addEventListener('keypress',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessageButton.click();}});
+    }
 
-    async function loadChats() {
-        if (!chatListContainer) return;
-        chatListContainer.innerHTML = '<p class="placeholder-text">Загрузка чатов...</p>';
+    // --- Friend System Functions ---
+    async function updateFriendRequestsBadge() {
+        const badge = document.getElementById('friendRequestsCount'); if (!badge) return;
         try {
-            // This URL should return JSON: [{id, name, last_message, last_message_at_display, participants:[{username, profile_picture_url}]}, ...]
-            const response = await fetch("{% url 'chat_room_list_api' %}"); // IMPORTANT: Changed to 'chat_room_list_api'
-            if (!response.ok) { throw new Error(`Network response was not ok for chats: ${response.status}`); }
+            const response = await fetch(API_GET_PENDING_REQUESTS_URL);
+            if (!response.ok) throw new Error('Network error for badge.');
+            const requests = await response.json();
+            badge.textContent = requests.length > 0 ? requests.length : '0';
+            badge.style.display = requests.length > 0 ? 'inline-block' : 'none';
+        } catch (error) { badge.textContent = '!'; badge.style.display = 'inline-block';}
+    }
+    async function displayFriendRequests() {
+        const reqContainer = document.getElementById('incomingRequestsList');
+        const mainCont = document.getElementById('friendRequestsContainer');
+        if (!reqContainer || !mainCont) return;
+        reqContainer.innerHTML = '<p class="placeholder-text">Загрузка...</p>';
+        mainCont.style.display = 'block'; // Ensure the container is visible
+
+        try {
+            const response = await fetch(API_GET_PENDING_REQUESTS_URL);
+            if (!response.ok) throw new Error('Fetch fail for friend requests');
+            const requests = await response.json();
+            updateFriendRequestsBadge(); // Make sure this function is defined and works
+
+            if (requests.length === 0) {
+                reqContainer.innerHTML = '<p class="placeholder-text">Нет входящих заявок.</p>';
+                return;
+            }
+            reqContainer.innerHTML = ''; // Clear loading text
+            requests.forEach(req => {
+                const item = document.createElement('div');
+                item.className = 'friend-request-item';
+                item.innerHTML = `
+                    <img src="${req.requester_profile_pic || defaultAvatarUrl}" class="friend-avatar-small" onerror="this.src='${defaultAvatarUrl}'">
+                    <div class="friend-request-info">
+                        <span class="friend-request-name">${req.requester_username}</span>
+                        <span class="friend-request-time">${new Date(req.created_at).toLocaleString('ru-RU')}</span>
+                    </div>
+                    <div class="friend-request-actions">
+                        <button class="action-button-small accept js-accept-request" data-request-id="${req.id}">Принять</button>
+                        <button class="action-button-small reject js-reject-request" data-request-id="${req.id}">Отклонить</button>
+                    </div>
+                `;
+                reqContainer.appendChild(item);
+
+                // Add event listeners for accept/reject buttons
+                const acceptBtn = item.querySelector('.js-accept-request');
+                if (acceptBtn) {
+                    acceptBtn.addEventListener('click', function() {
+                        acceptFriendRequest(this.dataset.requestId);
+                    });
+                }
+
+                const rejectBtn = item.querySelector('.js-reject-request');
+                if (rejectBtn) {
+                    rejectBtn.addEventListener('click', function() {
+                        rejectFriendRequest(this.dataset.requestId);
+                    });
+                }
+            });
+        } catch (error) {
+            reqContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Не удалось загрузить заявки.</p>';
+            console.error('Error in displayFriendRequests:', error);
+        }
+    }
+    window.acceptFriendRequest = async (friendshipId) => {
+        try { const r=await fetch(API_ACCEPT_REQUEST_URL(friendshipId),{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}}); const d=await r.json();
+            if(r.ok&&d.status==='success'){alert(d.message);loadFriends();displayFriendRequests();}else{throw new Error(d.message||'Fail');}}
+        catch(error){alert('Ошибка: '+error.message);}};
+    window.rejectFriendRequest = async (friendshipId) => {
+        try { const r=await fetch(API_REJECT_REQUEST_URL(friendshipId),{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}}); const d=await r.json();
+            if(r.ok&&d.status==='success'){alert(d.message);displayFriendRequests();}else{throw new Error(d.message||'Fail');}}
+        catch(error){alert('Ошибка: '+error.message);}};
+    async function searchGlobalUsers() {
+        const queryInput = document.getElementById('userGlobalSearchInput');
+        const resultsCont = document.getElementById('userGlobalSearchResultsContainer');
+        if (!queryInput || !resultsCont) return;
+
+        const query = queryInput.value;
+        if (query.length < 2) {
+            resultsCont.innerHTML = '';
+            return;
+        }
+        resultsCont.innerHTML = '<p class="placeholder-text">Поиск...</p>';
+
+        try {
+            const response = await fetch(API_SEARCH_USERS_URL(query));
+            if (!response.ok) throw new Error('Search API fail');
+            const data = await response.json();
+            const users = data.users;
+
+            if (users.length === 0) {
+                resultsCont.innerHTML = '<p class="placeholder-text">Пользователи не найдены.</p>';
+                return;
+            }
+            resultsCont.innerHTML = '';
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-search-item';
+                let btnHtml = '';
+
+                switch (user.status) {
+                    case 'can_send_request':
+                        btnHtml = `<button class="action-button-small add js-send-friend-request" data-user-id="${user.id}">Добавить</button>`;
+                        break;
+                    case 'request_sent':
+                        btnHtml = `<span class="status-text">Запрос отправлен</span>`;
+                        break;
+                    case 'request_received':
+                        btnHtml = `<button class="action-button-small view-request js-display-friend-requests" data-user-id="${user.id}">Посмотреть заявку</button>`;
+                        break;
+                    case 'already_friends':
+                        btnHtml = `<span class="status-text">Уже в друзьях</span>`;
+                        break;
+                    default:
+                        btnHtml = '';
+                }
+
+                item.innerHTML = `
+                    <img src="${user.profile_picture_url || defaultAvatarUrl}" class="friend-avatar-small" onerror="this.src='${defaultAvatarUrl}'">
+                    <div class="user-search-info">
+                        <span class="user-search-name">${user.username} (${user.full_name || ''})</span>
+                    </div>
+                    <div class="user-search-actions">${btnHtml}</div>
+                `;
+                resultsCont.appendChild(item);
+
+                // Add event listeners for dynamically created buttons
+                const sendRequestBtn = item.querySelector('.js-send-friend-request');
+                if (sendRequestBtn) {
+                    sendRequestBtn.addEventListener('click', function() {
+                        sendFriendRequest(this.dataset.userId, this);
+                    });
+                }
+
+                const displayRequestsBtn = item.querySelector('.js-display-friend-requests');
+                if (displayRequestsBtn) {
+                    displayRequestsBtn.addEventListener('click', function() {
+                        if (typeof displayFriendRequests === 'function') {
+                            displayFriendRequests();
+                        } else {
+                            console.error('displayFriendRequests function is not defined');
+                        }
+                    });
+                }
+            });
+            } catch (error) {
+            resultsCont.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка поиска.</p>';
+            console.error('Error in searchGlobalUsers:', error);
+        }
+    }
+    window.sendFriendRequest = async (userId, buttonElement) => {
+        try { const r=await fetch(API_SEND_FRIEND_REQUEST_URL(userId),{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}}); const d=await r.json();
+            if(r.ok&&(d.status==='success'||d.status==='info')){alert(d.message);if(buttonElement)buttonElement.outerHTML=`<span class="status-text">Запрос отправлен</span>`;updateFriendRequestsBadge();}
+            else{throw new Error(d.message||'Fail send');}}
+        catch(error){alert('Ошибка: '+error.message);}};
+    async function initiateChatAndShow(friendId, friendUsername) {
+        console.log(`Initiating chat with friend ID: ${friendId}, Username: ${friendUsername}`);
+        if (!friendId) {
+            console.error('Friend ID is missing for initiateChatAndShow');
+            alert('Не удалось начать чат: ID друга не найден.');
+            return;
+        }
+        try {
+            const response = await fetch(API_GET_OR_CREATE_PRIVATE_CHAT_URL(friendId), { // Make sure API_GET_OR_CREATE_PRIVATE_CHAT_URL is a function
+                        method: 'POST', 
+                        headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            });
+            console.log('Response from get_or_create_private_chat:', response);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Server error, unable to parse JSON.' }));
+                console.error('Failed to get or create private chat:', response.status, errorData);
+                alert(`Не удалось начать чат с ${friendUsername}. ${errorData.message || ''}`);
+                return;
+            }
+            const data = await response.json();
+            console.log('Data from get_or_create_private_chat:', data);
+            if (data.status === 'success' && data.room_id) {
+                console.log(`Chat room ready. Room ID: ${data.room_id}. Opening chat view for ${friendUsername}`);
+                // For a private chat, isGroup is false, creatorId is null (or not relevant here), participantIds are current user and friend
+                const participantIds = [parseInt(currentUserId, 10), parseInt(friendId, 10)];
+                showChatView(data.room_id, friendUsername, false, null, participantIds);
+                        } else {
+                console.error('Failed to get room_id from server:', data.message);
+                alert(`Не удалось получить ID чата для ${friendUsername}. ${data.message || 'Ответ сервера не содержит ID чата.'}`);
+                    }
+                } catch (error) {
+            console.error('Error in initiateChatAndShow:', error);
+            alert(`Ошибка при попытке начать чат с ${friendUsername}.`);
+        }
+    }
+    async function loadFriends() {
+        if (!friendListContainer) {
+            console.error('friendListContainer not found');
+            return;
+        }
+        friendListContainer.innerHTML = '<p class="placeholder-text">Загрузка друзей...</p>';
+        try {
+            const response = await fetch(API_GET_FRIENDS_URL); // Ensure API_GET_FRIENDS_URL is defined
+            if (!response.ok) throw new Error('Friends load fail - HTTP status ' + response.status);
+            const friends = await response.json();
+            if (!Array.isArray(friends)) {
+                console.error('Friends API did not return an array:', friends);
+                friendListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка: неверный формат данных от сервера.</p>';
+                return;
+            }
+            if (friends.length === 0) {
+                friendListContainer.innerHTML = '<p class="placeholder-text">У вас пока нет друзей.</p>';
+                return;
+            }
+            friendListContainer.innerHTML = ''; // Clear loading/placeholder
+
+            friends.forEach(friend => {
+                const item = document.createElement('div');
+                item.className = 'friend-item';
+                item.dataset.friendId = friend.id;
+
+                // Use classes for buttons and data attributes for parameters
+                item.innerHTML = `
+                    <img src="${friend.profile_picture_url || defaultAvatarUrl}" class="friend-avatar" alt="${friend.username}" onerror="this.src='${defaultAvatarUrl}'">
+                    <div class="friend-info">
+                        <span class="friend-name">${friend.username}</span>
+                        <div class="friend-actions">
+                            <button class="friend-action-link js-friend-write" data-friend-id="${friend.id}" data-friend-username="${friend.username}">Написать</button>
+                            <button class="friend-action-link js-friend-schedule" data-friend-id="${friend.id}" data-friend-username="${friend.username}">Расписание</button>
+                    </div>
+                    </div>
+                    <button class="friend-options js-friend-options" title="Дополнительно" data-friend-id="${friend.id}" data-friend-username="${friend.username}">⋮</button>
+                `;
+
+                const optsMenu = document.createElement('div');
+                optsMenu.className = 'friend-context-menu';
+                optsMenu.style.display = 'none';
+                item.appendChild(optsMenu);
+
+                friendListContainer.appendChild(item);
+
+                const writeBtn = item.querySelector('.js-friend-write');
+                if (writeBtn) {
+                    writeBtn.addEventListener('click', function() {
+                        if (typeof initiateChatAndShow === 'function') {
+                            initiateChatAndShow(this.dataset.friendId, this.dataset.friendUsername);
+                        } else {
+                            console.error('initiateChatAndShow function is not defined when listener attached.');
+                        }
+                    });
+                }
+
+                const scheduleBtn = item.querySelector('.js-friend-schedule');
+                if (scheduleBtn) {
+                    scheduleBtn.addEventListener('click', function() {
+                        if (typeof viewFriendSchedule === 'function') {
+                            viewFriendSchedule(this.dataset.friendId, this.dataset.friendUsername);
+                        } else {
+                            console.error('viewFriendSchedule function is not defined when listener attached.');
+                        }
+                    });
+                }
+
+                const optionsBtn = item.querySelector('.js-friend-options');
+                if (optionsBtn) {
+                    optionsBtn.addEventListener('click', function(event) {
+                        if (typeof showFriendOptions === 'function') {
+                            showFriendOptions(this.dataset.friendId, this.dataset.friendUsername, event);
+                        } else {
+                            console.error('showFriendOptions function is not defined when listener attached.');
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            friendListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка загрузки друзей.</p>';
+            console.error('Error in loadFriends:', error);
+        }
+    }
+    window.showFriendOptions = (friendId, friendUsername, event) => {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+        document.querySelectorAll('.friend-context-menu').forEach(m => {
+            if (event && m !== event.target.closest('.friend-item').querySelector('.friend-context-menu')) {
+                m.style.display = 'none';
+                m.innerHTML = '';
+            }
+        });
+
+        const item = event && event.target ? event.target.closest('.friend-item') : null;
+        if (!item) {
+            console.warn('Could not find parent .friend-item for options menu.');
+            return;
+        }
+
+        let menu = item.querySelector('.friend-context-menu');
+        if (!menu) {
+            console.warn('Friend context menu div not found in item, creating it.');
+            menu = document.createElement('div');
+            menu.className = 'friend-context-menu';
+            item.appendChild(menu);
+        }
+
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+            menu.innerHTML = '';
+        } else {
+            menu.innerHTML = `<button class="context-menu-button js-remove-friend" data-friend-id="${friendId}" data-friend-username="${friendUsername}">Удалить из друзей</button>`;
+            menu.style.display = 'block';
+            menu.style.position = 'absolute';
+            menu.style.backgroundColor = 'white';
+            menu.style.border = '1px solid #ccc';
+            menu.style.padding = '5px';
+            menu.style.zIndex = '1000';
+            const buttonRect = event.target.getBoundingClientRect();
+            const listRect = friendListContainer.getBoundingClientRect();
+
+            menu.style.top = (buttonRect.bottom - listRect.top + friendListContainer.scrollTop) + 'px';
+            menu.style.left = (buttonRect.left - listRect.left + friendListContainer.scrollLeft) + 'px';
+
+            const removeBtn = menu.querySelector('.js-remove-friend');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    removeFriend(this.dataset.friendId, this.dataset.friendUsername);
+                    menu.style.display = 'none';
+                    menu.innerHTML = '';
+                });
+            }
+        }
+    };
+    window.viewFriendSchedule = (friendId, friendUsername) => {
+        currentlyViewedUserId=friendId; document.getElementById('timelineUserDisplay').textContent=`Расписание: ${friendUsername}`;
+        document.getElementById('myScheduleButton').style.display='inline-block';
+        if(selectedStartDate){generateTimelineView(new Date(selectedStartDate+"T00:00:00+07:00"),selectedEndDate?new Date(selectedEndDate+"T23:59:59.999+07:00"):new Date(selectedStartDate+"T23:59:59.999+07:00"));}
+        else{const t=new Date(),s=new Date(t.setDate(t.getDate()-t.getDay()+1));s.setHours(0,0,0,0);const e=new Date(s);e.setDate(s.getDate()+6);e.setHours(23,59,59,999);generateTimelineView(s,e);}}
+    window.removeFriend = async function(friendId, friendUsername) {
+        if(!confirm(`Удалить ${friendUsername} из друзей?`))return;
+        try{
+            const r = await fetch(API_REMOVE_FRIEND_URL(friendId),{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}});
+            const d = await r.json();
+            if(r.ok && d.status==='success'){
+                alert(d.message);
+                loadFriends();
+                updateFriendRequestsBadge();
+            } else {
+                throw new Error(d.message||'Fail remove');
+            }
+        }
+        catch(error){
+            alert('Ошибка удаления: '+error.message);
+            console.error('Error in removeFriend:', error);
+        }
+    };
+    async function loadChats() {
+        if(!chatListContainer) {
+            console.error('chatListContainer not found for loadChats');
+            return;
+        }
+        chatListContainer.innerHTML='<p class="placeholder-text">Загрузка чатов...</p>';
+        try{
+            const response = await fetch("{% url 'chat_room_list_api' %}"); // Using Django URL template tag
+            if(!response.ok) throw new Error('Chats API request failed with status ' + response.status);
             const chats = await response.json();
-            
-            chatListContainer.innerHTML = '';
-            if (chats.length === 0) {
-                chatListContainer.innerHTML = '<p class="placeholder-text">Чатов не найдено.</p>';
+            if (!Array.isArray(chats)) {
+                console.error("loadChats: API did not return an array.", chats);
+                chatListContainer.innerHTML='<p class="placeholder-text" style="color:red;">Ошибка формата данных чатов.</p>';
+                return;
+            }
+            chatListContainer.innerHTML=''; 
+            if(chats.length===0){
+                chatListContainer.innerHTML='<p class="placeholder-text">У вас пока нет активных чатов.</p>';
                 return;
             }
             chats.forEach(chat => {
-                let chatName = chat.name;
-                let avatarUrl = defaultAvatarUrl; 
-                let lastMessage = chat.last_message || 'Нет сообщений';
-                let lastMessageAt = chat.last_message_at_display || '';
+                // Determine chat name and avatar
+                let displayName = chat.name;
+                let avatarUrl = defaultAvatarUrl; // Ensure defaultAvatarUrl is defined
 
-                if (!chatName && chat.participants && chat.participants.length > 0) {
-                    // For 1-on-1 chat, find the other participant (assuming current user is filtered out by API)
-                    const otherParticipant = chat.participants[0]; // API should give the other user
+                if (chat.is_group) {
+                    displayName = chat.name || 'Групповой чат';
+                    avatarUrl = chat.group_avatar_url || defaultAvatarUrl; // Assuming a field for group avatar
+                    if (!chat.group_avatar_url) avatarUrl = "{% static 'images/group_avatar.png' %}"; // Fallback group avatar
+                } else {
+                    // For private chats, find the other participant
+                    const otherParticipant = chat.participants_details.find(p => p.id.toString() !== currentUserId.toString());
                     if (otherParticipant) {
-                        chatName = otherParticipant.username;
-                        if(otherParticipant.profile_picture_url) avatarUrl = otherParticipant.profile_picture_url;
+                        displayName = otherParticipant.username;
+                        avatarUrl = otherParticipant.profile_picture_url || defaultAvatarUrl;
                     } else {
-                         chatName = "Чат"; // Fallback
+                        displayName = chat.name || 'Чат'; // Fallback if other participant not found
                     }
-                } else if (chat.participants && chat.participants.length > 1) { // Group chat
-                    // Use first participant's avatar as group avatar or a generic one
-                     if(chat.participants[0] && chat.participants[0].profile_picture_url) avatarUrl = chat.participants[0].profile_picture_url;
                 }
-                 if (!chatName) chatName = "Групповой чат";
+                if (!displayName) displayName = "Чат без имени";
 
 
-                const item = document.createElement('div');
-                item.classList.add('chat-item');
-                // Correctly create chat room detail URL
-                const chatDetailUrl = "{% url 'chat_room_detail' 0 %}".replace('0', chat.id);
-                item.setAttribute('onclick', `window.location.href='${chatDetailUrl}'`);
-                item.innerHTML = `
-                    <img src="${avatarUrl}" alt="avatar" class="chat-avatar" onerror="this.src='${defaultAvatarUrl}'">
+                const item=document.createElement('div');
+                item.className='chat-item';
+                item.dataset.roomId=chat.id;
+                item.dataset.chatName=displayName; // Use determined displayName
+                item.dataset.isGroup=chat.is_group.toString();
+                item.dataset.creatorId = chat.creator_id || '';
+                item.dataset.participantIds = JSON.stringify(chat.all_participant_ids || []);
+
+                item.addEventListener('click', () => {
+                    showChatView(
+                        chat.id, 
+                        displayName, // Use determined displayName
+                        chat.is_group, 
+                        chat.creator_id, 
+                        chat.all_participant_ids || []
+                    );
+                });
+                
+                item.innerHTML=`
+                    <img src="${avatarUrl}" class="chat-avatar" alt="${displayName}" onerror="this.src='${defaultAvatarUrl}'">
                     <div class="chat-info">
-                        <span class="chat-name">${chatName}</span>
-                        <span class="chat-last-message">${lastMessage}</span>
+                        <span class="chat-name">${displayName}</span>
+                        <span class="chat-last-message">${chat.last_message_content || 'Нет сообщений'}</span>
                     </div>
-                    <span class="chat-time">${lastMessageAt}</span>
+                    <span class="chat-time">${chat.last_message_at_display || ''}</span>
                 `;
                 chatListContainer.appendChild(item);
             });
-        } catch (error) {
-            console.error("Failed to load chats:", error);
-            chatListContainer.innerHTML = '<p class="placeholder-text" style="color:red;">Ошибка загрузки чатов.</p>';
+        } catch(error){
+            console.error("Error in loadChats:", error);
+            chatListContainer.innerHTML='<p class="placeholder-text" style="color:red;">Ошибка загрузки чатов.</p>';
         }
     }
     
-    // --- Search Functionality for Left Panel ---
-    if(friendSearchInput) {
-        friendSearchInput.addEventListener('input', function() { // 'input' for live search
+    // --- Search Functionality (Left Panel) ---
+    if(friendSearchInput) friendSearchInput.addEventListener('input', function() {
             const filter = this.value.toLowerCase();
-            const items = friendListContainer.querySelectorAll('.friend-item');
-            items.forEach(item => {
-                const name = item.querySelector('.friend-name').textContent.toLowerCase();
-                item.style.display = name.includes(filter) ? '' : 'none';
-          });
-        });
-    }
-     if(chatSearchInput) {
-        chatSearchInput.addEventListener('input', function() { // 'input' for live search
+        friendListContainer.querySelectorAll('.friend-item .friend-name').forEach(nameEl => { nameEl.closest('.friend-item').style.display = nameEl.textContent.toLowerCase().includes(filter) ? '' : 'none';}); });
+    if(chatSearchInput) chatSearchInput.addEventListener('input', function() {
             const filter = this.value.toLowerCase();
-            const items = chatListContainer.querySelectorAll('.chat-item');
-            items.forEach(item => {
-                const name = item.querySelector('.chat-name').textContent.toLowerCase();
-                item.style.display = name.includes(filter) ? '' : 'none';
-        });
-      });
-    }
+        chatListContainer.querySelectorAll('.chat-item .chat-name').forEach(nameEl => { nameEl.closest('.chat-item').style.display = nameEl.textContent.toLowerCase().includes(filter) ? '' : 'none';}); });
 
-    // --- Initialize Page: Setup static parts like the new horizontal timeline header ---
+    // --- Initialize Page ---
     function initializePage() {
-        if (smallCalendarDaysBodyEl) renderSmallCalendar();
-
+        renderSmallCalendar();
+        const today = new Date(), dayOfWeek = today.getDay();
+        const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate()-dayOfWeek+(dayOfWeek===0?-6:1)); startOfWeek.setHours(0,0,0,0);
+        const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6); endOfWeek.setHours(23,59,59,999);
+        selectedStartDate = getKrasnoyarskDateString(startOfWeek); selectedEndDate = getKrasnoyarskDateString(endOfWeek);
+        renderSmallCalendar(); generateTimelineView(startOfWeek, endOfWeek);
         const timelineHeaderRow = document.getElementById('timelineHeader');
         if (timelineHeaderRow) {
             timelineHeaderRow.innerHTML = ''; 
-            timelineHeaderRow.style.display = 'flex'; 
-            timelineHeaderRow.style.boxSizing = 'border-box';
-
-            // Add Month Title
-            const monthTitleSpan = document.createElement('span');
-            monthTitleSpan.classList.add('timeline-month-title');
-            // Use currentSmallCalendarDate for consistency, or new Date() if timeline is independent
-            monthTitleSpan.textContent = monthNames[currentSmallCalendarDate.getMonth()]; 
-            timelineHeaderRow.appendChild(monthTitleSpan);
-
-            const slotsContainer = document.createElement('div');
-            slotsContainer.classList.add('timeline-header-slots-horizontal'); // New class for styling
-            slotsContainer.style.position = 'relative'; // Crucial for mark positioning
-            slotsContainer.style.width = '100%';      // Ensure it spans full width
-            timelineHeaderRow.appendChild(slotsContainer);
-
-            const timePoints = [
-                { label: "06:00", percent: 0 },    // Start at 6:00 AM
-                { label: "12:00", percent: 25 }, // Noon
-                { label: "18:00", percent: 50 }, // 6 PM
-                { label: "00:00", percent: 75 }, // Midnight
-                { label: "06:00", percent: 100 }  // 6:00 AM next day (end of 24h cycle)
-            ];
-
-            timePoints.forEach(tp => {
-                const mark = document.createElement('div');
-                mark.classList.add('timeline-hour-mark-horizontal'); // New class
-                mark.style.left = `${tp.percent}%`;
-
-                const label = document.createElement('span');
-                label.classList.add('timeline-hour-label-horizontal'); // New class
-                label.textContent = tp.label;
-                
-                // Adjust label positioning to be centered under the mark, or at edges
-                if (tp.percent === 0) {
-                    label.style.transform = 'translateX(0%)'; // Consistent percentage unit
-                } else if (tp.percent === 100) {
-                    label.style.transform = 'translateX(-100%)';
-                } else {
-                    label.style.transform = 'translateX(-50%)';
-                }
-
-                mark.appendChild(label);
-                slotsContainer.appendChild(mark);
+            const controlsDiv=document.createElement('div');controlsDiv.className='timeline-header-controls';
+            const myScheduleBtn=document.createElement('button');myScheduleBtn.textContent="Мое расписание";myScheduleBtn.className='action-button panel-button';myScheduleBtn.id='myScheduleButton';
+            myScheduleBtn.addEventListener('click',()=>{
+                currentlyViewedUserId=currentUserId;document.getElementById('timelineUserDisplay').textContent='Мое расписание';
+                if(selectedStartDate)generateTimelineView(new Date(selectedStartDate+"T00:00:00+07:00"),selectedEndDate?new Date(selectedEndDate+"T23:59:59.999+07:00"):new Date(selectedStartDate+"T23:59:59.999+07:00"));
+                else generateTimelineView(startOfWeek,endOfWeek);
             });
+            controlsDiv.appendChild(myScheduleBtn); const userDisp=document.createElement('span');userDisp.id='timelineUserDisplay';userDisp.textContent='Мое расписание';controlsDiv.appendChild(userDisp); timelineHeaderRow.appendChild(controlsDiv);
+            const monthTitle=document.createElement('span');monthTitle.className='timeline-month-title';monthTitle.textContent=monthNames[currentSmallCalendarDate.getMonth()];timelineHeaderRow.appendChild(monthTitle);
+            const slotsCont=document.createElement('div');slotsCont.className='timeline-header-slots-horizontal';
+            const timePoints=[{l:"06:00",p:0},{l:"12:00",p:25},{l:"18:00",p:50},{l:"00:00",p:75},{l:"06:00",p:100}];
+            timePoints.forEach(tp=>{const m=document.createElement('div');m.className='timeline-hour-mark-horizontal';m.style.left=`${tp.p}%`;const l=document.createElement('span');l.className='timeline-hour-label-horizontal';l.textContent=tp.l;if(tp.p===0)l.style.transform='translateX(0%)';else if(tp.p===100)l.style.transform='translateX(-100%)';else l.style.transform='translateX(-50%)';m.appendChild(l);slotsCont.appendChild(m);});
+            timelineHeaderRow.appendChild(slotsCont);
         }
         
-        // Set initial selected range for small calendar and load vertical days
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 (Sun) - 6 (Sat)
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)); // Adjust to Monday
-        startOfWeek.setHours(0,0,0,0);
-
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23,59,59,999);
-
-        selectedStartDate = getKrasnoyarskDateString(startOfWeek);
-        selectedEndDate = getKrasnoyarskDateString(endOfWeek);
-        
-        if (smallCalendarDaysBodyEl) renderSmallCalendar();
-        if (timelineViewContainer) generateTimelineView(startOfWeek, endOfWeek);
-        // if (eventFormInline) updateEventFormForRange(selectedStartDate, selectedEndDate); // OLD Inline form logic - Call removed
-
-        // Load initial tab content
-        const activeTab = document.querySelector('.tab-link.active');
-        if (activeTab) {
-            const tabName = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
-            if (tabName === 'friends-tab-content') { loadFriends(); }
-            else if (tabName === 'chats-tab-content') { loadChats(); }
-        } else { // Fallback if no tab is active by default (should be one)
-            loadFriends();
+        // Determine and open the initial active tab
+        const initiallyActiveTabLink = document.querySelector('.left-panel-tabs .tab-link.active');
+        let initialTabId = 'friends-tab-content'; // Default to friends tab
+        if (initiallyActiveTabLink && initiallyActiveTabLink.dataset.tab) {
+            initialTabId = initiallyActiveTabLink.dataset.tab;
         }
-        
-        // Fetch friend request count
-        fetch("{% url 'friend_requests_count_api' %}") // Needs a new API endpoint
-            .then(response => response.json())
-            .then(data => {
-                const badge = document.getElementById('friendRequestsCount');
-                if (badge && data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                } else if (badge) {
-                    badge.style.display = 'none';
-                }
-            })
-            .catch(err => console.error('Failed to fetch friend request count:', err));
+        openTab(initialTabId); // This will also call loadFriends or loadChats
+
+        updateFriendRequestsBadge();
+        const showFriendRequestsBtn = document.getElementById('showFriendRequestsBtn');
+        if (showFriendRequestsBtn) showFriendRequestsBtn.addEventListener('click',(e)=>{e.preventDefault();displayFriendRequests();});
+        const userGlobalSearchInput = document.getElementById('userGlobalSearchInput');
+        if (userGlobalSearchInput) userGlobalSearchInput.addEventListener('input',debounce(searchGlobalUsers,300));
+        // Global click listener to close friend context menu
+        document.addEventListener('click',(event)=>{
+            if(!event.target.matches('.friend-options') && !event.target.closest('.friend-context-menu')) {
+                document.querySelectorAll('.friend-context-menu').forEach(menu=> {
+                    menu.style.display='none';
+                    menu.innerHTML = ''; // Clear content when hiding
+                });
+            }
+        });
+
+        // Add event listener for the new back button
+        if (chatViewBackButton) {
+            chatViewBackButton.addEventListener('click', showTimelineView);
+        }
     }
 
     initializePage();
+
+    window.handleLeaveGroupChat = async () => { 
+        stopChatPolling(); // Add this
+        const chatViewPanel = document.getElementById('chatViewPanel');
+        // ... rest of your function
+    };
+
+    function stopChatPolling() {
+        if (chatPollingIntervalId) {
+            clearInterval(chatPollingIntervalId);
+            chatPollingIntervalId = null;
+            console.log("Chat polling stopped.");
+        }
+    }
+
+    let chatPollingIntervalId = null; // For polling new messages
+    const POLLING_INTERVAL_MS = 5000; // Poll every 5 seconds
     });
   </script>
 {% endblock %}
+
