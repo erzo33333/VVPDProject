@@ -1,177 +1,245 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shedle</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Schedle</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #1f1f1f;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    header .logo {
+      display: flex;
+      align-items: center;
+    }
+    header .logo h1 {
+      margin-left: 10px;
+      font-size: 24px;
+    }
+    header input[type="text"] {
+      width: 200px;
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    header .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .container {
+      display: flex;
+    }
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      padding: 15px;
+      border-right: 1px solid #ddd;
+    }
+    .sidebar button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .sidebar input[type="text"] {
+      width: 100%;
+      margin-top: 10px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .main {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+    }
+    .left-panel {
+      width: 300px;
+      margin-right: 20px;
+    }
+    .left-panel button {
+      margin-top: 10px;
+      margin-right: 10px;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      background: black;
+      color: white;
+      cursor: pointer;
+    }
+    .left-panel input[type="checkbox"] {
+      margin-right: 5px;
+    }
+    .calendar {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .right-panel {
+      flex: 1;
+    }
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      color: #555;
+    }
+    .day-box {
+      display: flex;
+      align-items: center;
+      border: 1px solid #000;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+    .day-box .day {
+      width: 60px;
+      font-weight: bold;
+    }
+    .day-box .content {
+      flex: 1;
+      color: #555;
+      cursor: pointer;
+    }
+    .day-box input {
+      width: 100%;
+      padding: 5px;
+      font-size: 14px;
+    }
+    #test-button {
+      margin: 20px;
+      padding: 10px 20px;
+      background: darkgreen;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-
-<body class="h-screen flex flex-col">
-  <!-- Header - Responsive adjustments -->
-  <div class="bg-[#1E1E1E] h-12 flex items-center justify-between px-2 sm:px-4">
-    <div class="flex items-center space-x-2 sm:space-x-4">
-      <span class="text-base sm:text-xl font-bold text-purple-500">Shedle</span>
+<body>
+  <header>
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/906/906334.png" alt="logo" width="30">
+      <h1>Schedle</h1>
     </div>
-
-    <div class="flex items-center space-x-2 sm:space-x-4">
-      <div class="relative hidden sm:block">
-        <input type="text" placeholder="Поиск"
-          class="bg-black text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full w-32 sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500">
-        <svg xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4 sm:h-5 sm:w-5 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        <div class="relative">
-          <button class="text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
-          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">4</span>
-        </div>
-
-        <button class="bg-gray-700 rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-          </svg>
-        </button>
-      </div>
+    <input type="text" placeholder="Поиск">
+    <div class="profile">
+      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="notifications" width="25">
+      <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" alt="profile" width="30">
     </div>
-  </div>
-
-  <!-- Main Content - Responsive layout -->
-  <div class="flex flex-col sm:flex-row flex-1 overflow-hidden">
-    <!-- Left Sidebar - 25% width -->
-    <div class="w-full sm:w-[16%] border-r border-gray-200 p-4 overflow-y-auto">
-      <div class="space-y-4">
-        <div class="flex space-x-2 mb-2 overflow-x-auto">
-          <button class="px-3 py-1.5 rounded-md bg-black text-white text-sm flex-shrink-0">Друзья 0</button>
-          <button class="px-3 py-1.5 rounded-md bg-gray-200 text-black text-sm flex-shrink-0">Мероприятия</button>
-          <button class="px-3 py-1.5 rounded-md bg-gray-200 text-black text-sm flex-shrink-0">Чаты</button>
-        </div>
-        <div class="relative mb-2">
-          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
-            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M21 21l-4.35-4.35M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13z" />
-          </svg>
-          <input type="text" placeholder="Поиск в друзьях"
-            class="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-500 text-sm border border-black focus:outline-none focus:ring-0">
-        </div>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <button class="bg-black text-white px-4 py-2 rounded-full text-xs mb-2 sm:mb-0">+ Создать группу</button>
-          <button class="bg-black text-white px-4 py-2 rounded-full text-xs">Заявки в друзья</button>
-        </div>
-        <div class="text-center text-gray-500 text-xs">Друзей не найдено</div>
-      </div>
+  </header>
+  <div class="container">
+    <div class="sidebar">
+      <button>Друзья 0</button>
+      <button>Мероприятия</button>
+      <button>Чаты</button>
+      <input type="text" placeholder="Поиск в друзьях">
+      <button>+ Создать группу</button>
+      <button>Заявки в друзья</button>
+      <p>Друзей не найдено</p>
     </div>
-
-    <!-- Center Content - 30% width -->
-    <div class="w-full sm:w-[16%] p-4 overflow-y-auto bg-white text-white space-y-4">
-      <!-- Header -->
-      <div class="bg-gray-700 rounded-lg py-4 text-center">
-        <h3 class="text-sm">Редактировать расписание</h3>
-      </div>
-
-      <!-- Calendar Section - Simplified for mobile -->
-      <div class="bg-gray-700 rounded-lg p-4">
-        <div class="text-sm text-white mb-3">март</div>
-
-        <!-- Week Days - Responsive grid -->
-        <div class="grid grid-cols-7 text-center text-white text-xs sm:text-sm mb-3">
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-          <div>5</div>
-          <div>6</div>
-          <div>7</div>
+    <div class="main">
+      <div class="left-panel">
+        <button>✏️ Редактировать расписание</button>
+        <div class="calendar">
+          <strong>Месяц&nbsp;&nbsp;Год</strong>
+          <table>
+            <tr><th>пн</th><th>вт</th><th>ср</th><th>чт</th><th>пт</th><th>сб</th><th>вс</th></tr>
+            <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+            <tr><td><b>8</b></td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
+          </table>
         </div>
-
-        <!-- Highlighted Week - Responsive -->
-        <div class="flex justify-between items-center bg-gray-200 text-black rounded-full px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm mb-3">
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-          <div>5</div>
-          <div>6</div>
-          <div>7</div>
-        </div>
-
-        <!-- Other Rows - Responsive grid -->
-        <div class="grid grid-cols-7 text-center text-white text-xs sm:text-sm gap-y-1 sm:gap-y-2">
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-          <div>5</div>
-          <div>6</div>
-          <div>7</div>
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-          <div>5</div>
-          <div>6</div>
-          <div>7</div>
+        <button>Создать мероприятие</button>
+        <button>Добавить событие</button>
+        <div>
+          <label><input type="checkbox"> Показать только личные события</label><br>
+          <label><input type="checkbox"> Показать только события с друзьями</label><br>
+          <label><input type="checkbox"> Скрыть рабочие/учебные дела</label>
         </div>
       </div>
-
-      <!-- Bottom Buttons Section - Responsive -->
-      <div class="bg-gray-700 rounded-lg flex items-center justify-center h-24 sm:h-40 text-center text-white text-sm sm:text-lg">
-        Кнопки
-      </div>
-    </div>
-
-    <!-- Right Sidebar - 40% width -->
-    <div class="hidden sm:flex bg-[#FFFDD0] rounded-lg border-2 border-blue-500 shadow-md p-4 w-[68%] gap-x-3 mt-4 mb-4">
-      <!-- Days of Week Column -->
-      <div class="relative w-5 h-full">
-        <!-- Left Arrow Button -->
-        <div class="absolute left-[-16px] top-1/2 -translate-y-1/2 w-4 h-8 bg-white rounded-full shadow flex items-center justify-center text-sm text-gray-700 border z-10">
-          ←
+      <div class="right-panel">
+        <div class="timeline">
+          <span>6:00</span><span>12:00</span><span>18:00</span><span>00:00</span><span>6:00</span>
         </div>
+        <div class="day-box"><div class="day">1 пн</div><div class="content" data-day="1">нет событий на день</div></div>
+        <div class="day-box"><div class="day">2 вт</div><div class="content" data-day="2">нет событий на день</div></div>
+        <div class="day-box"><div class="day">3 ср</div><div class="content" data-day="3">нет событий на день</div></div>
+        <div class="day-box"><div class="day">4 чт</div><div class="content" data-day="4">нет событий на день</div></div>
+        <div class="day-box"><div class="day">5 пт</div><div class="content" data-day="5">нет событий на день</div></div>
+        <div class="day-box"><div class="day">6 сб</div><div class="content" data-day="6">нет событий на день</div></div>
+        <div class="day-box"><div class="day">7 вс</div><div class="content" data-day="7">нет событий на день</div></div>
+        <div class="day-box"><div class="day">8 пн</div><div class="content" data-day="8">нет событий на день</div></div>
+        <div class="day-box"><div class="day">9 вт</div><div class="content" data-day="9">нет событий на день</div></div>
 
-        <!-- Vertical Column with Rotated Text -->
-        <div class="bg-[#3F4042] border-r border-[#47494C] w-full h-full flex items-center justify-center">
-          <div class="text-white text-sm transform -rotate-90 whitespace-nowrap origin-center">
-            Дни недели
-          </div>
-        </div>
-      </div>
-
-      <!-- Hours Column -->
-      <div class="flex-1 flex flex-col">
-        <!-- Hours Header -->
-        <!-- Time Slots Grid -->
-        <div class="grid grid-rows-10 grid-flow-col flex-1 gap-y-2">
-          <!-- Repeating rows with borders -->
-          <div class="bg-[#3F4042] text-white text-center py-0.5 text-sm">
-            Часы
-          </div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042] border-b border-[#47494C]"></div>
-          <div class="bg-[#3F4042]"></div>
-        </div>
+        <button id="test-button">Тестовая кнопка</button>
       </div>
     </div>
   </div>
+  <script>
+    function loadEvents() {
+      document.querySelectorAll('.content').forEach(content => {
+        const day = content.dataset.day;
+        const saved = localStorage.getItem('event_' + day);
+        if (saved) {
+          content.innerText = saved;
+        }
+      });
+    }
+
+    function setupEditableContent() {
+      document.querySelectorAll('.content').forEach(content => {
+        content.addEventListener('click', () => {
+          const currentText = content.innerText;
+          const input = document.createElement('input');
+          input.value = currentText;
+          content.innerHTML = '';
+          content.appendChild(input);
+          input.focus();
+
+          const save = () => {
+            const newText = input.value || 'нет событий на день';
+            content.innerText = newText;
+            const day = content.dataset.day;
+            localStorage.setItem('event_' + day, newText);
+          };
+
+          input.addEventListener('blur', save);
+          input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') input.blur();
+          });
+        });
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadEvents();
+      setupEditableContent();
+
+      document.getElementById('test-button').addEventListener('click', () => {
+        alert('Кнопка работает!');
+      });
+    });
+  </script>
 </body>
-
 </html>
