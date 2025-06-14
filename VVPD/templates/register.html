@@ -1,15 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Регистрация</title>
+    <meta charset="UTF-8">
+    <title>Регистрация | Schedle</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background: linear-gradient(to bottom, #000000, #1a1a1a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+        .logo-icon {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(to right, purple, blue);
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        .container {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 360px;
+            text-align: center;
+        }
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        form {
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .password-hint {
+            font-size: 12px;
+            color: #555;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #333;
+        }
+        .login-link {
+            margin-top: 20px;
+            display: block;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-error {
+            color: red;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Регистрация</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Зарегистрироваться</button>
-    </form>
-    <p>Уже зарегистрированы? <a href="{% url 'login' %}">Войти</a></p>
+    <div class="logo">
+        <div class="logo-icon"></div>
+        Schedle
+    </div>
+    <div class="container">
+        <h2>Регистрация</h2>
+        <form method="post">
+            {% csrf_token %}
+
+            <input type="text" name="username" placeholder="Придумайте имя пользователя" required>
+            <input type="password" name="password1" placeholder="Придумайте пароль" required>
+            <input type="password" name="password2" placeholder="Повторите пароль" required>
+
+            <div class="password-hint">Минимум 6 символов</div>
+            {% if form.errors %}
+                <div class="form-error">
+                    {{ form.non_field_errors }}
+                    {% for field in form %}
+                        {{ field.errors }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <button type="submit">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+        </form>
+        <p class="login-link">Уже зарегистрированы? <a href="{% url 'login' %}">Войти</a></p>
+    </div>
 </body>
 </html>

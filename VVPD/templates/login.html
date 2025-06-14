@@ -1,19 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Вход</title>
+    <meta charset="UTF-8">
+    <title>Вход | Schedle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background: linear-gradient(to bottom, #000000, #1a1a1a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 360px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(to right, purple, blue);
+            border-radius: 4px;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .register-link {
+            margin-top: 20px;
+            display: block;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Стилизация form.as_p */
+        form p {
+            margin: 10px 0;
+        }
+
+        form label {
+            display: none; /* скрываем лейблы, если хочешь, можно вернуть */
+        }
+
+        form input {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <h2>Вход</h2>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Войти</button>
-    </form>
+    <div class="logo">
+        <div class="logo-icon"></div>
+        Schedle
+    </div>
 
-    <p>Ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+    <div class="container">
+        <h2>Вход</h2>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Войти</button>
+        </form>
+        <div class="register-link">
+            Ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+        </div>
+    </div>
 </body>
 </html>
