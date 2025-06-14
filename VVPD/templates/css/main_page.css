@@ -1,0 +1,604 @@
+/* New MainPage.html Layout Styles */
+.main-page-container {
+    display: flex;
+    flex-direction: column; /* Stack nav and content-wrapper */
+    min-height: calc(100vh - 60px); /* Ensure it at least fills viewport if content is short */
+    background-color: #1E1E1E; /* Dark background for the page */
+    color: #fff;
+}
+
+.main-page-nav {
+    display: flex;
+    background-color: #1E1E1E; /* Match page background or slightly different if preferred */
+    padding: 0 20px; /* Horizontal padding */
+    border-bottom: 1px solid #333;
+    position: sticky; /* Make nav sticky */
+    top: 0; /* Stick to the top of the viewport */
+    z-index: 900; /* Ensure it's above other content during scroll */
+}
+
+.nav-tab-button {
+    padding: 12px 20px;
+    background: transparent;
+    color: #bbb;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 3px solid transparent; /* For active state indicator */
+    margin-right: 10px;
+}
+
+.nav-tab-button.active {
+    color: #fff;
+    border-bottom: 3px solid #fff; /* Or your accent color */
+}
+
+.nav-tab-button:hover {
+    color: #fff;
+}
+
+.main-page-content-wrapper {
+    display: flex;
+    /* flex-grow: 1; REMOVED */
+    /* overflow: hidden; REMOVED */
+    /* No fixed height, let it grow with content */
+    border-top: 1px solid #333; /* Optional: visual separation from nav */
+}
+
+/* Left Column */
+.main-page-left-column {
+    /* width: 280px; */ /* Replaced with flex-basis */
+    flex-basis: 336px; /* Increased from 280px */
+    min-width: 200px; /* Minimum width before it cannot be shrunk further */
+    padding: 20px;
+    background-color: #111; /* Slightly different from main page bg, as per screenshot */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* overflow-y: auto; REMOVED - Will scroll with page */
+    border-right: 1px solid #333;
+    position: relative; /* For potential future absolute positioning within */
+}
+
+.friend-search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #333;
+    border-radius: 20px;
+    background-color: #222;
+    color: #fff;
+    font-size: 14px;
+}
+.friend-search-input::placeholder {
+    color: #888;
+}
+
+.action-button-mainpage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background-color: #000; /* Black buttons as per screenshot */
+    color: #fff;
+    border: 1px solid #333; /* Subtle border */
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: left;
+    width: 100%;
+}
+
+.action-button-mainpage:hover {
+    background-color: #222;
+}
+
+.friends-list-placeholder p {
+    color: #888;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Center Column */
+.main-page-center-column {
+    flex-grow: 1; /* Takes available space */
+    min-width: 300px; /* Example minimum width */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* overflow-y: auto; REMOVED - Will scroll with page */
+    background-color: #1E1E1E; /* Match overall page background */
+    position: relative;
+}
+
+.edit-schedule-mainpage-button {
+    background-color: #000; /* Black button */
+    align-self: flex-start; /* Positioned to the left */
+    width: auto; /* Not full width */
+    padding: 10px 20px;
+}
+
+.calendar-container-mainpage {
+    background-color: #111; /* Darker background for calendar block */
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.calendar-header-mainpage {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.month-year-display {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.calendar-nav-buttons button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 18px;
+}
+.calendar-nav-buttons button:hover {
+    background-color: #333;
+    border-radius: 4px;
+}
+
+.calendar-grid-mainpage {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Equal column widths */
+}
+
+.calendar-grid-mainpage th {
+    color: #888;
+    font-weight: normal;
+    padding-bottom: 10px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.calendar-grid-mainpage td {
+    text-align: center;
+    padding: 2px 5px; /* Adjusted padding */
+    height: 120px; /* Significantly increased height */
+    border: 1px solid #333;
+    font-size: 14px;
+    cursor: pointer;
+    vertical-align: top; /* Align content (date number, event markers) to the top */
+}
+
+.calendar-grid-mainpage td:hover {
+    background-color: #2a2a2a;
+    justify-content: flex-start;
+    height: 100%;
+    padding-top: 2px;
+    position: relative;
+    overflow-y: auto;
+}
+
+.calendar-day-mainpage.today-mainpage {
+    background-color: #333; /* Highlight for today */
+    font-weight: bold;
+    border-radius: 4px; /* If you want rounded today */
+}
+
+.calendar-day-mainpage.other-month {
+    color: #555; /* Dim color for days not in the current month */
+    cursor: default; /* Optional: change cursor if these days are not interactive */
+}
+
+.day-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: flex-start; 
+    height: 100%; 
+    padding-top: 2px; 
+    overflow-y: auto; /* Allow scrolling within the cell if many events */
+    position: relative; /* For future use if needed */
+}
+
+.date-number {
+    font-size: 0.9em;
+    margin-bottom: 2px; /* Space between date and first event marker */
+    text-overflow: ellipsis;
+    max-width: 90%;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.event-marker {
+    font-size: 0.8em; /* Slightly larger for better readability in taller cells */
+    padding: 2px 4px; /* Adjusted padding */
+    border-radius: 3px;
+    color: white;
+    margin-bottom: 2px; /* Increased space between markers */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* max-width: 90%; REMOVED to allow full width */
+    width: 100%; /* Make marker take full width of its container */
+    box-sizing: border-box; /* Ensure padding/border are included in width */
+    cursor: pointer; 
+    text-align: left; /* Align text to the left within the marker */
+}
+
+/* Styling for multi-day event segments */
+.event-marker.event-full-segment {
+    border-radius: 3px; /* Standard radius for single-day or fully contained events */
+}
+
+.event-marker.event-start-segment {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-right: -1px; /* Overlap slightly with next segment, adjust as needed */
+}
+
+.event-marker.event-middle-segment {
+    border-radius: 0;
+    margin-left: -1px; /* Overlap with previous segment */
+    margin-right: -1px; /* Overlap with next segment */
+}
+
+.event-marker.event-end-segment {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    margin-left: -1px; /* Overlap slightly with previous segment */
+}
+
+/* Add .other-month class for styling days not in current month if needed */
+
+.event-actions-container-mainpage {
+    display: flex;
+    gap: 10px;
+}
+
+.create-event-mainpage-button {
+    background-color: transparent; /* As per screenshot (seems lighter) */
+    border: 1px solid #555;
+    color: #ccc;
+    flex-grow: 1; /* Takes more space */
+}
+.create-event-mainpage-button .icon-filter-mainpage {
+    margin-right: 5px;
+}
+
+.add-event-short-button {
+     background-color: transparent;
+     border: 1px solid #555;
+     color: #ccc;
+}
+
+.event-filters-mainpage {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.event-filters-mainpage label {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #bbb;
+}
+
+.event-filters-mainpage input[type="checkbox"] {
+    margin-right: 8px;
+    width: 15px;
+    height: 15px;
+    accent-color: #555; /* Control checkbox color */
+}
+
+/* Right Column (Timeline) */
+.main-page-right-column {
+    /* width: 320px; */ /* Replaced with flex-basis */
+    flex-basis: 384px; /* Increased from 320px */
+    flex-grow: 1; /* ADDED: Allow right column to grow if center is hidden */
+    min-width: 250px; /* Example minimum width */
+    padding: 20px;
+    background-color: #111; /* Match left column background */
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #333;
+    /* overflow-y: auto; REMOVED - Will scroll with page */
+    position: relative;
+}
+
+.timeline-header-mainpage {
+    margin-bottom: 15px;
+}
+
+.timeline-header-mainpage h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    text-align: left; /* Match screenshot */
+}
+
+.timeline-scale-mainpage {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    padding: 5px 0;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
+}
+
+.timeline-day-boxes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1px; /* Very thin separator between day boxes */
+}
+
+.timeline-day-box-mainpage {
+    display: flex;
+    background-color: #000; /* Black background for day boxes */
+    border: 1px solid #333; /* Border for each day box */
+    border-radius: 4px; /* Slightly rounded corners */
+    margin-bottom: 5px; /* Space between day boxes */
+}
+
+.day-label-mainpage {
+    padding: 15px 10px;
+    font-weight: 500;
+    width: 60px; /* Fixed width for day label */
+    border-right: 1px solid #333;
+    text-align: center;
+    font-size: 14px;
+}
+
+.day-content-mainpage {
+    flex-grow: 1;
+    padding: 15px;
+    font-size: 13px;
+    color: #888; /* "нет событий на день" text color */
+    min-height: 50px; /* Ensure box has some height */
+    display: flex;
+    align-items: center; /* Center text vertically */
+    justify-content: center; /* Center text horizontally */
+}
+
+/* Resizer Styles */
+.resizer {
+    background-color: #222; /* Darker color for the resizer bar */
+    width: 5px; /* Width of the resizer bar */
+    cursor: col-resize; /* Cursor to indicate resizable */
+    flex-shrink: 0; /* Prevent resizer from shrinking */
+    /* Center the resizer line if you prefer a thinner visual */
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
+    transition: background-color 0.2s ease-out;
+}
+
+/* Optional: make resizer more visible on hover */
+.resizer:hover,
+.resizer.active {
+    background-color: #444; /* Lighter color on hover/active */
+}
+
+/* Small Calendar in Left Column */
+.small-calendar-container {
+    background-color: #1C1C1C; /* Slightly different from column bg */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-top: 15px; /* Space from elements above */
+}
+
+.small-calendar-header .month-year-display {
+    font-size: 1em; /* Smaller font for small calendar */
+    font-weight: 500;
+}
+
+.small-calendar-header .calendar-nav-buttons button {
+    font-size: 1.1em; /* Adjust size of nav buttons */
+    padding: 3px 8px;
+}
+
+.small-calendar-grid th {
+    font-size: 0.75em; /* Smaller day names */
+    padding-bottom: 8px;
+}
+
+.small-calendar-grid td {
+    height: auto; /* Let content determine height, or set a small fixed one */
+    padding: 5px 2px; /* Reduced padding for smaller cells */
+    font-size: 0.8em; /* Smaller date numbers */
+    min-width: 25px; /* Ensure cells have some width */
+}
+
+.small-calendar-grid .date-number {
+    /* No event markers in small calendar, so direct styling for date number is fine */
+    padding: 3px;
+    display: inline-block;
+    border-radius: 3px;
+}
+
+.small-calendar-grid td.today-mainpage .date-number {
+    background-color: #444; /* Highlight for today */
+    color: #fff;
+    font-weight: bold;
+}
+
+.small-calendar-grid td:not(.other-month):hover .date-number {
+    background-color: #555;
+}
+
+/* Styles for selected dates in small calendar */
+.small-calendar-grid td.selected-start .date-number,
+.small-calendar-grid td.selected-end .date-number {
+    background-color: #007bff; /* Blue for start/end selection */
+    color: white;
+    font-weight: bold;
+}
+
+.small-calendar-grid td.selected-range .date-number {
+    background-color: #007bff55; /* Lighter blue for in-between range */
+    color: white;
+}
+
+.view-schedule-button {
+    margin-top: 15px; /* Space from calendar */
+    background-color: #007bff; /* Primary action color */
+    color: white;
+}
+.view-schedule-button:hover {
+    background-color: #0056b3;
+}
+
+/* Timeline View in Right Column */
+#timelineViewContainer {
+    /* Styles for the container if needed, e.g., padding is already on .main-page-right-column */
+}
+
+.timeline-day-entry {
+    display: flex;
+    background-color: #000; /* Black background for day boxes as per image */
+    border: 1px solid #333; 
+    border-radius: 6px; /* Slightly rounded corners */
+    margin-bottom: 8px; /* Space between day boxes */
+    min-height: 70px; /* Minimum height for a day entry */
+}
+
+.timeline-day-label {
+    padding: 15px 12px;
+    font-weight: 500;
+    width: 70px; /* Fixed width for day label (e.g., "1 ПН") */
+    border-right: 1px solid #333;
+    text-align: center;
+    font-size: 0.95em;
+    display: flex;
+    flex-direction: column; /* To stack date and day name if needed */
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer; /* Added for event creation trigger */
+}
+
+.timeline-day-content {
+    flex-grow: 1;
+    padding: 15px;
+    font-size: 0.9em;
+    color: #888; 
+    position: relative; /* Needed for absolute positioning of event items */
+    min-height: 60px; /* Ensure it has some base height for event items */
+}
+
+.timeline-event-placeholder {
+    text-align: center;
+    padding-top: 10px; /* Give some space if it's just placeholder */
+}
+
+/* Styles for actual events within .timeline-day-content */
+.timeline-event-item {
+    background-color: #333; 
+    color: white;
+    padding: 4px 8px; /* Adjusted padding for potentially smaller height */
+    /* margin-bottom: 6px; REMOVED - will be absolutely positioned */
+    border-radius: 4px;
+    cursor: pointer;
+    /* display: flex; REMOVED */
+    /* flex-direction: column; REMOVED */
+    transition: background-color 0.2s ease;
+    position: absolute; /* Key change for proportional rendering */
+    height: 22px; /* Example fixed height, adjust as needed. Can also be dynamic. */
+    /* top will be set by JS */
+    /* left and width will be set by JS */
+    box-sizing: border-box; /* Important for percentage width + padding */
+    overflow: hidden; /* Prevent content from spilling if too small */
+}
+
+.timeline-event-item:hover {
+    background-color: #444; /* Darken on hover */
+}
+
+.timeline-event-title {
+    font-weight: 500;
+    font-size: 0.8em; /* Adjusted for smaller height */
+    /* margin-bottom: 4px; REMOVED - layout managed differently */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3; /* Adjust for vertical centering if needed with fixed height */
+}
+
+.timeline-event-time {
+    font-size: 0.75em; /* Adjusted */
+    color: #bbb;
+    display: none; /* Initially hide, can be shown on hover or if space allows */
+    /* position: absolute; right: 5px; top: 2px; (example if shown) */
+}
+
+.timeline-event-item:hover .timeline-event-time {
+    display: block; /* Show time on hover */
+}
+
+.timeline-header-mainpage {
+    margin-bottom: 15px;
+}
+
+.timeline-header-mainpage h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    text-align: left; /* Match screenshot */
+}
+
+.timeline-scale-mainpage {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    padding: 5px 0;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
+}
+
+.timeline-day-boxes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1px; /* Very thin separator between day boxes */
+}
+
+.timeline-day-box-mainpage {
+    display: flex;
+    background-color: #000; /* Black background for day boxes */
+    border: 1px solid #333; /* Border for each day box */
+    border-radius: 4px; /* Slightly rounded corners */
+    margin-bottom: 5px; /* Space between day boxes */
+}
+
+.day-label-mainpage {
+    padding: 15px 10px;
+    font-weight: 500;
+    width: 60px; /* Fixed width for day label */
+    border-right: 1px solid #333;
+    text-align: center;
+    font-size: 14px;
+}
+
+.day-content-mainpage {
+    flex-grow: 1;
+    padding: 15px;
+    font-size: 13px;
+    color: #888; /* "нет событий на день" text color */
+    min-height: 50px; /* Ensure box has some height */
+    display: flex;
+    align-items: center; /* Center text vertically */
+    justify-content: center; /* Center text horizontally */
+} 

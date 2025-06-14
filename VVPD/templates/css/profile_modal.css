@@ -1,0 +1,286 @@
+/* Profile modal */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden; /* Changed from auto to hidden on .modal, .modal-content will scroll */
+    background-color: rgba(0,0,0,0.6); 
+    /* padding-top: 60px; Removed, centering handled by flex on .modal */
+    display: flex; /* For centering .modal-content */
+    align-items: center; /* For centering .modal-content */
+    justify-content: center; /* For centering .modal-content */
+}
+
+.modal-content { 
+    background-color: #1A1A1A; 
+    margin: auto; /* Flex centering is preferred, but auto helps */
+    padding: 25px;
+    border: 1px solid #444;
+    width: 60%; 
+    max-width: 800px; /* Adjusted max-width, can be tuned */
+    height: auto; /* Height will be determined by content up to max-height */
+    max-height: 80vh; /* Approx 80% of viewport height */
+    border-radius: 8px;
+    color: #fff; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    overflow-y: auto; /* Enable vertical scrolling within the modal content if it exceeds max-height */
+    display: flex; /* Added to help form stretch if needed */
+    flex-direction: column; /* Added to help form stretch if needed */
+}
+
+/* If #eventModal does not use .modal-content, apply width changes directly to #profileModal and #eventModal */
+/* However, it is better if both profile and event modals use .modal and .modal-content structure */
+
+#profileModal .modal-header, 
+#eventModal .modal-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#profileModal .modal-title,
+#eventModal .modal-title {
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+#profileModal .close-button,
+#eventModal .close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.profile-section {
+    margin-bottom: 2rem;
+}
+
+.profile-section h3 {
+    font-size: 16px;
+    margin-bottom: 1rem;
+    color: #888;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-field-value {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.profile-action {
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5rem 0;
+}
+
+.profile-action.danger {
+    color: #dc3545;
+}
+
+/* New Profile Modal Styles */
+.profile-photo-display {
+    width: 70px; /* Adjusted from 80px to better fit screenshot */
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block; 
+    margin-right: 15px;
+}
+
+.profile-photo-default-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: #333; /* Dark grey, can be #000 for black */
+    display: none; /* Hidden by default */
+    margin-right: 15px;
+}
+
+.profile-view-main-info {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #222; /* Darker background to match theme */
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.profile-text-info {
+    flex-grow: 1;
+}
+
+.profile-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 0 0 2px 0;
+    color: #fff;
+}
+
+.profile-username,
+.profile-email {
+    font-size: 0.9em;
+    color: #aaa; /* Lighter grey for better readability on dark bg */
+    margin: 0 0 2px 0;
+}
+
+.edit-profile-link {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 0.9em; /* Slightly larger */
+    text-decoration: none;
+    color: #bbb; /* Lighter for visibility */
+}
+.edit-profile-link:hover {
+    color: #fff;
+}
+
+.profile-section-divider {
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #444; /* Darker border */
+    padding-bottom: 5px;
+    color: #fff;
+}
+
+.profile-settings-list .profile-field,
+.profile-edit-field,
+.event-modal-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0; /* Increased padding */
+    color: #ccc;
+}
+
+.profile-edit-field label,
+.event-modal-field label {
+    margin-right: 10px;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    color: #ccc;
+}
+
+.profile-edit-field input[type="text"],
+.profile-edit-field input[type="email"],
+.profile-edit-field input[type="file"],
+.profile-edit-field select,
+/* Apply to event modal specific inputs too */
+#eventModal input[type="text"],
+#eventModal input[type="datetime-local"],
+#eventModal select,
+#eventModal textarea {
+    width: 100%;
+    padding: 12px 15px; /* Increased padding */
+    background-color: #2C2C2C;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1em; /* Increased font size */
+}
+
+#eventModal textarea {
+    min-height: 120px; /* Increased height for description */
+    resize: vertical;
+}
+
+#eventModal input[type="datetime-local"] {
+    /* Specific styles for datetime-local if needed, e.g., height */
+     height: 48px; /* Match padding of other inputs */
+}
+
+/* Ensure form inside modal takes up space */
+#profileModal form,
+#eventModal form {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-field span {
+    color: #ccc;
+}
+
+.profile-field-value {
+    color: #bbb; /* Lighter grey for values */
+    text-decoration: none;
+}
+
+.profile-field-value:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+#profileEditForm h4,
+#privacyEditForm h4, 
+#languageEditForm h4 {
+    color: #fff;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.modal-header {
+    border-bottom: 1px solid #333; /* Match modal border */
+}
+
+.modal-title {
+    color: #fff;
+}
+
+.close-button {
+    color: #aaa;
+}
+.close-button:hover {
+    color: #fff;
+}
+
+.profile-actions .action-button,
+.profile-actions .profile-action {
+    color: #bbb;
+}
+
+.profile-actions .action-button:hover,
+.profile-actions .profile-action:hover {
+    color: #fff;
+    background-color: #333; /* Assuming action buttons have a background on hover */
+}
+
+.profile-actions .profile-action.danger {
+    color: #f44336; /* Red for danger action */
+}
+.profile-actions .profile-action.danger:hover {
+    color: #fff;
+    background-color: #f44336;
+} 

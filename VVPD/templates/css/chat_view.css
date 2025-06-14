@@ -1,0 +1,210 @@
+/* VVPD/static/css/chat_view.css */
+
+.chat-view-panel {
+    display: flex; /* Changed from block to flex */
+    flex-direction: column;
+    width: 100%; /* Should take full width of its container */
+    height: 100%; /* Should take full height of its container */
+    background-color: #f9f9f9;
+    border-left: 1px solid #ddd;
+    box-sizing: border-box;
+    /* remove position: fixed if it was there, let parent control positioning */
+}
+
+.chat-view-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0; /* Header should not shrink */
+}
+
+.chat-header-button.back-button {
+    margin-right: 10px;
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.chat-header-button.back-button:hover {
+    background-color: #d0d0d0;
+}
+
+.chat-name-header {
+    flex-grow: 1;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-header-actions .chat-header-button {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.chat-view-messages-container {
+    flex-grow: 1; /* Allows this container to take up available space */
+    overflow-y: auto; /* Enables vertical scrolling for messages */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    /* gap: 10px; /* Optional: adds space between message items */
+}
+
+.chat-message-item {
+    display: flex;
+    margin-bottom: 10px; /* Replaces gap for wider browser support if needed */
+    max-width: 75%;
+    align-items: flex-end; /* Aligns avatar with bottom of message bubble */
+}
+
+.chat-message-item.sent {
+    align-self: flex-end;
+    flex-direction: row-reverse; /* Avatar on the right for sent messages */
+}
+
+.chat-message-item.received {
+    align-self: flex-start;
+    flex-direction: row;
+}
+
+.message-avatar-container {
+    margin: 0 8px;
+}
+
+.message-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.message-content-container {
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.chat-message-item.sent .message-content-container {
+    background-color: #007bff; /* Example: Schedle blue */
+    color: white;
+    border-top-right-radius: 5px; /* Makes it look more like a speech bubble */
+}
+
+.chat-message-item.received .message-content-container {
+    background-color: #e9e9eb; /* Light grey for received messages */
+    color: #333;
+    border-top-left-radius: 5px; /* Makes it look more like a speech bubble */
+}
+
+.message-sender-name {
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-bottom: 3px;
+    color: #555;
+}
+
+.chat-message-item.sent .message-sender-name {
+    color: rgba(255, 255, 255, 0.8);
+    text-align: right; /* If sender name is above message bubble */
+}
+.chat-message-item.received .message-sender-name {
+    color: #555;
+}
+
+.message-text {
+    word-wrap: break-word;
+}
+
+.message-timestamp {
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 4px;
+    text-align: right; /* Timestamps usually to the right under the bubble */
+}
+
+.chat-message-item.sent .message-timestamp {
+    color: rgba(255, 255, 255, 0.7);
+}
+.chat-message-item.received .message-timestamp {
+    color: #888;
+}
+
+.chat-view-input-area {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid #ddd;
+    background-color: #f0f0f0;
+    flex-shrink: 0; /* Input area should not shrink */
+}
+
+#chatMessageInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    margin-right: 10px;
+    resize: none; /* Prevent manual resize */
+    font-size: 1em;
+    min-height: 20px; /* Min height for one line */
+    max-height: 100px; /* Max height for a few lines, then scroll */
+    overflow-y: auto; /* Scroll within textarea if content is too much */
+}
+
+#sendChatMessageButton.action-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#sendChatMessageButton.action-button:hover {
+    background-color: #0056b3;
+}
+
+.chat-view-panel .placeholder-text {
+    margin: auto;
+    color: #777;
+    font-style: italic;
+}
+
+/* Responsive adjustments if needed */
+@media (max-width: 768px) {
+    .chat-message-item {
+        max-width: 90%; /* Allow messages to be a bit wider on smaller screens */
+    }
+    .chat-view-header h3 {
+        font-size: 1.1em;
+    }
+    #chatMessageInput,
+    #sendChatMessageButton.action-button {
+        padding: 8px 15px;
+        font-size: 0.95em;
+    }
+}
+
+/* Ensure the main layout container allows for absolute positioning of chat view */
+.main-layout-container {
+    position: relative; /* This is important if chat-view-panel is position: absolute */
+}
+
+/* Make sure other panels are hidden correctly */
+/* .timeline-section[style*="display: none"],
+.center-panel.editing-panel[style*="display: none"] {
+    /* These are hidden by JS, this is just a reminder or for explicit hiding if JS fails * /
+} */ 
