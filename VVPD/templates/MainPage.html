@@ -137,6 +137,39 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    .time-container {
+      width: 100%;
+      position: relative;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .time-axis {
+      position: relative;
+      height: 30px;
+    }
+
+    .time-label {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      color: #444;
+    }
+
+    .time-tick {
+      position: absolute;
+      top: 20px;
+      height: 10px;
+      width: 1px;
+      background-color: #aaa;
+    }
+
+    .day-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -181,54 +214,42 @@
         </div>
       </div>
 {% block content %}
+<div class="right-panel">
+  <!-- Шкала времени -->
+  <div class="time-container">
+    <div class="time-axis">
+      <!-- Метки времени каждые 6 часов -->
+      <div class="time-label" style="left: 0%;">6:00</div>
+      <div class="time-label" style="left: 25%;">12:00</div>
+      <div class="time-label" style="left: 50%;">18:00</div>
+      <div class="time-label" style="left: 75%;">00:00</div>
+      <div class="time-label" style="left: 100%;">6:00</div>
 
-{% endblock %}
+      <!-- Вертикальные линии -->
+      <div class="time-tick" style="left: 0%;"></div>
+      <div class="time-tick" style="left: 25%;"></div>
+      <div class="time-tick" style="left: 50%;"></div>
+      <div class="time-tick" style="left: 75%;"></div>
+      <div class="time-tick" style="left: 100%;"></div>
     </div>
   </div>
-  <script>
-    function loadEvents() {
-      document.querySelectorAll('.content').forEach(content => {
-        const day = content.dataset.day;
-        const saved = localStorage.getItem('event_' + day);
-        if (saved) {
-          content.innerText = saved;
-        }
-      });
-    }
 
-    function setupEditableContent() {
-      document.querySelectorAll('.content').forEach(content => {
-        content.addEventListener('click', () => {
-          const currentText = content.innerText;
-          const input = document.createElement('input');
-          input.value = currentText;
-          content.innerHTML = '';
-          content.appendChild(input);
-          input.focus();
+  <!-- Вертикальные блоки под шкалой -->
+  <div class="day-column">
+    <div class="day-box">
+      <div class="day">1 ПН</div>
+      <div class="content">Нет событий</div>
+    </div>
+    <div class="day-box">
+      <div class="day">2 ВТ</div>
+      <div class="content">Нет событий</div>
+    </div>
+    <div class="day-box">
+      <div class="day">3 СР</div>
+      <div class="content">Нет событий</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
-          const save = () => {
-            const newText = input.value || 'нет событий на день';
-            content.innerText = newText;
-            const day = content.dataset.day;
-            localStorage.setItem('event_' + day, newText);
-          };
-
-          input.addEventListener('blur', save);
-          input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') input.blur();
-          });
-        });
-      });
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadEvents();
-      setupEditableContent();
-
-      document.getElementById('test-button').addEventListener('click', () => {
-        alert('Кнопка работает!');
-      });
-    });
-  </script>
-</body>
 </html>
