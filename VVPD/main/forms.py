@@ -20,10 +20,14 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email']
+        fields = ['username']
 
     def clean_password2(self):
         cd = self.cleaned_data
         if cd.get('password') != cd.get('password2'):
             raise forms.ValidationError('Пароли не совпадают')
         return cd.get('password2')
+
+    def __init__(self, *args, **kwargs):
+        super(forms.ModelForm, self).__init__(*args, **kwargs)
+        self.fields['username'].help_text = ''

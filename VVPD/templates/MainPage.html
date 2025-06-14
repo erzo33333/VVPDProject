@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
+
+{% load static %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -178,22 +180,9 @@
           <label><input type="checkbox"> Скрыть рабочие/учебные дела</label>
         </div>
       </div>
-      <div class="right-panel">
-        <div class="timeline">
-          <span>6:00</span><span>12:00</span><span>18:00</span><span>00:00</span><span>6:00</span>
-        </div>
-        <div class="day-box"><div class="day">1 пн</div><div class="content" data-day="1">нет событий на день</div></div>
-        <div class="day-box"><div class="day">2 вт</div><div class="content" data-day="2">нет событий на день</div></div>
-        <div class="day-box"><div class="day">3 ср</div><div class="content" data-day="3">нет событий на день</div></div>
-        <div class="day-box"><div class="day">4 чт</div><div class="content" data-day="4">нет событий на день</div></div>
-        <div class="day-box"><div class="day">5 пт</div><div class="content" data-day="5">нет событий на день</div></div>
-        <div class="day-box"><div class="day">6 сб</div><div class="content" data-day="6">нет событий на день</div></div>
-        <div class="day-box"><div class="day">7 вс</div><div class="content" data-day="7">нет событий на день</div></div>
-        <div class="day-box"><div class="day">8 пн</div><div class="content" data-day="8">нет событий на день</div></div>
-        <div class="day-box"><div class="day">9 вт</div><div class="content" data-day="9">нет событий на день</div></div>
+{% block content %}
 
-        <button id="test-button">Тестовая кнопка</button>
-      </div>
+{% endblock %}
     </div>
   </div>
   <script>

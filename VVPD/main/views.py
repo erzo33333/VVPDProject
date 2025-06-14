@@ -43,7 +43,9 @@ def register(request):
 
 @login_required(login_url='login')
 def main_page(request):
-    return render(request, 'MainPage.html', context={})
+    CurrentUser = request.user
+    CurrentUserEvents = CurrentUser.events.all()
+    return render(request, 'MainPage.html', context={'events': CurrentUserEvents})
 
 
 @login_required(login_url='login')
@@ -53,4 +55,6 @@ def index_page(request):
 
 #@login_required(login_url='login')
 def second_page(request):
+    CurrentUser = request.user
+    #CurrentUser.create_event('Танцы', datetime(2025, 6, 2, 17, 30), datetime(2025, 6, 2, 20, 00), description=None, colour='grey', participants=None)  #Создание ивента текущим пользователем
     return render(request, 'SecondPage.html', context={})

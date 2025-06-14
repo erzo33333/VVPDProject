@@ -104,10 +104,7 @@
         <h2>Регистрация</h2>
         <form method="post">
             {% csrf_token %}
-
-            <input type="text" name="username" placeholder="Придумайте имя пользователя" required>
-            <input type="password" name="password1" placeholder="Придумайте пароль" required>
-            <input type="password" name="password2" placeholder="Повторите пароль" required>
+            {{ form.as_p }}
 
             <div class="password-hint">Минимум 6 символов</div>
             {% if form.errors %}
