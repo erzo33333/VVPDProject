@@ -1,5 +1,8 @@
+import json
 from django import forms
-from main.models import User
+
+
+from main.models import User, Event
 from django.contrib.auth import get_user_model
 
 
@@ -31,3 +34,24 @@ class RegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(forms.ModelForm, self).__init__(*args, **kwargs)
         self.fields['username'].help_text = ''
+
+
+class EventForm(forms.ModelForm):
+
+    class Meta:
+        model = Event
+        fields = ['Title', 'StartTime', 'EndTime', 'Description', 'Colour']
+        labels = {
+            'Title': 'Название события',
+            'StartTime': 'Начало',
+            'EndTime': 'Конец',
+            'Description': 'Описание',
+            'Colour': 'Цвет события (например: blue)',
+        }
+        widgets = {
+            'Title': forms.TextInput(attrs={'placeholder': 'Название события'}),
+            'StartTime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'EndTime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'Description': forms.Textarea(attrs={'rows': 4}),
+            'Colour': forms.TextInput(attrs={'placeholder': 'Цвет события (например: blue)'}),
+        }

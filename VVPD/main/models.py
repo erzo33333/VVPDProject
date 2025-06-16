@@ -34,11 +34,11 @@ class User(AbstractUser):
 
 
 class Event(models.Model):
-    Title = models.CharField(max_length=40, blank=False, default='event')
+    Title = models.CharField(max_length=40, blank=False, default='')
     Creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
     StartTime = models.DateTimeField(blank=False)
     EndTime = models.DateTimeField(blank=False)
-    Description = models.JSONField(null=True, blank=True, default=[])
+    Description = models.TextField(null=True, blank=True, default=[])
     Colour = models.CharField(max_length=20, blank=True, default='grey')
     Participants = models.ManyToManyField(User, related_name="events")
 

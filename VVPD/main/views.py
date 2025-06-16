@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from datetime import datetime
 from main.models import User, Event
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, EventForm
+from django.contrib import messages
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 
@@ -83,3 +84,23 @@ def user_schedule_view(request, username):
         'events': events,
         'is_own_schedule': viewed_user == request.user
     })
+
+
+@login_required
+def create_event(request):
+    if request.method == 'POST':
+        form = EventForm(request.POST)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.Creator = request.user
+            if event.StartTime >= event.EndTime:
+                messages.error(request, 'Ошибка: время окончания должно быть ПОЗЖЕ времени начала!')
+                return render(request, 'CreateEvent.html', {'form': form})
+
+            event.save()
+            event.save()
+            event.Participants.add(request.user)
+            return redirect('main page')
+    else:
+        form = EventForm()
+    return render(request, 'CreateEvent.html', {'form': form})
