@@ -6,15 +6,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Schedle</title>
-  <style>
+
+<style>
     * {
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
+
     body {
       margin: 0;
       background: #f5f5f5;
     }
+
     header {
       background: #1f1f1f;
       color: white;
@@ -23,34 +26,41 @@
       align-items: center;
       padding: 10px 20px;
     }
+
     header .logo {
       display: flex;
       align-items: center;
     }
+
     header .logo h1 {
       margin-left: 10px;
       font-size: 24px;
     }
+
     header input[type="text"] {
       width: 200px;
       padding: 5px;
       border-radius: 5px;
       border: none;
     }
+
     header .profile {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .container {
       display: flex;
     }
+
     .sidebar {
       width: 250px;
       background: #fff;
       padding: 15px;
       border-right: 1px solid #ddd;
     }
+
     .sidebar button {
       width: 100%;
       padding: 8px;
@@ -61,6 +71,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     .sidebar input[type="text"] {
       width: 100%;
       margin-top: 10px;
@@ -68,15 +79,18 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+
     .main {
       flex: 1;
       padding: 20px;
       display: flex;
     }
+
     .left-panel {
       width: 300px;
       margin-right: 20px;
     }
+
     .left-panel button {
       margin-top: 10px;
       margin-right: 10px;
@@ -87,24 +101,33 @@
       color: white;
       cursor: pointer;
     }
+
     .left-panel input[type="checkbox"] {
       margin-right: 5px;
     }
+
     .calendar {
       background: white;
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
+
     .right-panel {
-      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+      width: 100%;
     }
+
     .timeline {
       display: flex;
       justify-content: space-between;
       padding: 10px;
       color: #555;
     }
+
     .day-box {
       display: flex;
       align-items: center;
@@ -114,20 +137,24 @@
       padding: 10px;
       background: #fff;
     }
+
     .day-box .day {
       width: 60px;
       font-weight: bold;
     }
+
     .day-box .content {
       flex: 1;
       color: #555;
       cursor: pointer;
     }
+
     .day-box input {
       width: 100%;
       padding: 5px;
       font-size: 14px;
     }
+
     #test-button {
       margin: 20px;
       padding: 10px 20px;
@@ -137,23 +164,24 @@
       border-radius: 8px;
       cursor: pointer;
     }
+
     .time-container {
-      width: 100%;
       position: relative;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #ccc;
+      height: 30px;
+      margin-bottom: 20px;
+      background: #eee;
     }
 
     .time-axis {
-      position: relative;
-      height: 30px;
+      position: absolute;
+      width: 100%;
+      height: 100%;
     }
 
     .time-label {
       position: absolute;
-      top: 0;
       transform: translateX(-50%);
-      font-size: 0.9rem;
+      font-size: 12px;
       color: #444;
     }
 
@@ -165,38 +193,42 @@
       background-color: #aaa;
     }
 
-    .day-column {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .day-row {
+      margin-bottom: 30px;
     }
-    .event-track {
-      position: relative;
-      height: 60px;
-      margin-top: 20px;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-    }
-    .event-bar {
-      position: absolute;
-      top: 5px;
-      height: 50px;
-      background-color: #87CEFA;
-      border: 1px solid #555;
-      border-radius: 8px;
-      padding: 5px;
-      box-sizing: border-box;
-      overflow: hidden;
-  }
-    .event-label {
-      font-size: 12px;
-      color: #000;
-    }
-    .event-line {
-      position: relative;
-      height: 50px;
+
+    .day-label {
+      font-weight: bold;
       margin-bottom: 5px;
-  }
+    }
+
+    .events-row {
+      position: relative;
+      min-height: 60px;
+      background: #f5f5f5;
+      border-radius: 5px;
+      padding: 5px 0;
+    }
+
+    .event-block {
+      position: absolute;
+      height: 40px;
+      background-color: #4a90e2;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-time {
+      font-size: 10px;
+      opacity: 0.8;
+    }
+
   </style>
 </head>
 <body>
@@ -261,16 +293,21 @@
         </div>
       </div>
 {% block content %}
-
 <div class="right-panel">
-  <label for="user-select"><strong>Расписание пользователя:</strong></label>
-  <select id="user-select">
-    <option value="{{ request.user.id }}">Моё расписание</option>
-    {% for friend in request.user.Friends.all %}
-      <option value="{{ friend.id }}">{{ friend.username }}</option>
-    {% endfor %}
-</select>
 
+  <!-- Выбор пользователя -->
+  <form method="get" id="user-select-form">
+    <label for="user-select">Выберите пользователя:</label>
+    <select id="user-select" name="user_id" onchange="document.getElementById('user-select-form').submit()">
+      {% for user in user_list %}
+        <option value="{{ user.id }}" {% if user.id == selected_user.id %}selected{% endif %}>
+          {{ user.username }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <!-- Временная шкала -->
   <div class="time-container">
     <div class="time-axis">
       <div class="time-label" style="left: 0%;">6:00</div>
@@ -286,52 +323,26 @@
       <div class="time-tick" style="left: 100%;"></div>
     </div>
   </div>
-<!-- Общий контейнер, куда мы будем вставлять события -->
-<div id="schedule-container" style="margin-top: 20px;"></div>
 
-  </form>
-
-  <script>
-  function showSchedule(userId) {
-    const container = document.getElementById("schedule-container");
-    const schedule = document.getElementById("template-" + userId);
-    if (container && schedule) {
-      container.innerHTML = schedule.innerHTML;
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const select = document.getElementById("user-select");
-    if (select) {
-      showSchedule(select.value); // начальное отображение
-
-      select.addEventListener("change", function () {
-        showSchedule(this.value);
-      });
-    }
-  });
-</script>
-
-<!-- Скрытые блоки для всех пользователей -->
-<div id="template-{{ uid }}">
-  {% if events %}
-    <div class="event-track">
-      {% for event in events %}
-        <div class="event-line">
-          <div class="event-bar" style="left: {{ event.left }}%; width: {{ event.width }}%;">
-            <div class="event-label">
-              <strong>{{ event.Title }}</strong><br>
-              {{ event.StartTime|time:"H:i" }}–{{ event.EndTime|time:"H:i" }}
-            </div>
+  <!-- События по дням -->
+  {% for date, events in events_by_day.items %}
+    <div class="day-row">
+      <div class="day-label">{{ date }}</div>
+      <div class="events-row">
+        {% for event in events %}
+          <div class="event-block"
+               style="left: {{ event.left }}%; width: {{ event.width }}%; top: {{ event.top }}px;">
+            {{ event.Title }}
+            <div class="event-time">{{ event.StartTime|time:"H:i" }} – {{ event.EndTime|time:"H:i" }}</div>
           </div>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
-  {% else %}
+  {% empty %}
     <p>Нет событий</p>
-  {% endif %}
-</div>
+  {% endfor %}
 
 </div>
 {% endblock %}
+
 </html>

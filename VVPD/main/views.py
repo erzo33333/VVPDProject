@@ -6,7 +6,7 @@ from .forms import LoginForm, RegistrationForm, EventForm
 from django.contrib import messages
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
-
+from collections import defaultdict
 
 def user_login(request):
     if request.method == 'POST':
@@ -44,35 +44,63 @@ def register(request):
 
 @login_required(login_url='login')
 def main_page(request):
-    CurrentUser = request.user
-    CurrentUserEvents = CurrentUser.events.all()
-    friends = request.user.Friends.all()
-    all_users = [CurrentUser] + list(friends)
-    schedules = {}
-    for u in all_users:
-        events = Event.objects.filter(Creator=u)
-        enriched_events = []
-        for e in events:
-            start_minutes = e.StartTime.hour * 60 + e.StartTime.minute
-            end_minutes = e.EndTime.hour * 60 + e.EndTime.minute
-            total_minutes = 24 * 60  # сутки
+    current_user = request.user
+    selected_user_id = request.GET.get('user_id')
 
-            left = ((start_minutes - 360) / total_minutes) * 100  # 6:00 — начало шкалы
-            width = ((end_minutes - start_minutes) / total_minutes) * 100
+    # Выбор пользователя
+    if selected_user_id:
+        try:
+            selected_user = current_user.Friends.get(id=selected_user_id)
+        except:
+            selected_user = current_user
+    else:
+        selected_user = current_user
 
-            enriched_events.append({
-                "Title": e.Title,
-                "StartTime": e.StartTime,
-                "EndTime": e.EndTime,
-                "left": left,
-                "width": width,
-            })
+    all_users = [current_user] + list(current_user.Friends.all())
 
-        schedules[u.id] = enriched_events
+    events_qs = Event.objects.filter(Creator=selected_user).order_by('StartTime')
+    events_by_day = defaultdict(list)
+
+    placed = defaultdict(list)  # day → list of (start, end, level)
+
+    for e in events_qs:
+        start_minutes = e.StartTime.hour * 60 + e.StartTime.minute
+        end_minutes = e.EndTime.hour * 60 + e.EndTime.minute
+        total_minutes = 24 * 60
+
+        # Смещаем отсчёт от 6:00
+        left = ((start_minutes - 360) / total_minutes) * 100
+        width = ((end_minutes - start_minutes) / total_minutes) * 100
+
+        if left < 0:
+            left = 0
+        if width < 0:
+            width = 0.5
+
+        date_key = e.StartTime.date()
+
+        # Уровни для перекрывающихся событий
+        level = 0
+        for placed_event in placed[date_key]:
+            if not (end_minutes <= placed_event['start'] or start_minutes >= placed_event['end']):
+                if placed_event['level'] == level:
+                    level += 1
+
+        placed[date_key].append({'start': start_minutes, 'end': end_minutes, 'level': level})
+
+        events_by_day[date_key].append({
+            'Title': e.Title,
+            'StartTime': e.StartTime,
+            'EndTime': e.EndTime,
+            'left': left,
+            'width': width,
+            'top': level * 50
+        })
+
     return render(request, 'MainPage.html', context={
-        'events': CurrentUserEvents,
-        'friends': friends,
-        'schedules': schedules
+        'user_list': all_users,
+        'selected_user': selected_user,
+        'events_by_day': dict(events_by_day)
     })
 
 
@@ -88,8 +116,6 @@ def second_page(request):
     #CurrentUser.Friends.add(User.objects.get(id=7))
     print(CurrentUser.username, CurrentUser.Friends.all())
     return render(request, 'SecondPage.html', context={})
-
-
 
 
 @login_required
