@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from datetime import datetime
 from main.models import User, Event
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import LoginForm, RegistrationForm
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
@@ -45,7 +45,17 @@ def register(request):
 def main_page(request):
     CurrentUser = request.user
     CurrentUserEvents = CurrentUser.events.all()
-    return render(request, 'MainPage.html', context={'events': CurrentUserEvents})
+    friends = request.user.Friends.all()
+    all_users = [CurrentUser] + list(friends)
+    schedules = {
+        u.id: Event.objects.filter(Participants=u).order_by('StartTime')
+        for u in all_users
+    }
+    return render(request, 'MainPage.html', context={
+        'events': CurrentUserEvents,
+        'friends': friends,
+        'schedules': schedules
+    })
 
 
 @login_required(login_url='login')
@@ -56,5 +66,20 @@ def index_page(request):
 #@login_required(login_url='login')
 def second_page(request):
     CurrentUser = request.user
-    #CurrentUser.create_event('Танцы', datetime(2025, 6, 2, 17, 30), datetime(2025, 6, 2, 20, 00), description=None, colour='grey', participants=None)  #Создание ивента текущим пользователем
+    #CurrentUser.create_event('Велогонка', datetime(2025, 7, 5, 14, 30), datetime(2025, 7, 5, 17, 00), description=None, colour='green', participants=None)  #Создание ивента текущим пользователем
+    #CurrentUser.Friends.add(User.objects.get(id=7))
+    print(CurrentUser.username, CurrentUser.Friends.all())
     return render(request, 'SecondPage.html', context={})
+
+
+@login_required(login_url='login')
+def user_schedule_view(request, username):
+    viewed_user = get_object_or_404(User, username=username)
+    events = Event.objects.filter(Creator=viewed_user).order_by('StartTime')
+    is_own_schedule = viewed_user == request.user
+    friends = request.user.Friends.all()
+    return render(request, 'UserSchedule.html', context={
+        'viewed_user': viewed_user,
+        'events': events,
+        'is_own_schedule': viewed_user == request.user
+    })

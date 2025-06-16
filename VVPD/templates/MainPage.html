@@ -186,7 +186,7 @@
   </header>
   <div class="container">
     <div class="sidebar">
-      <button>Друзья 0</button>
+      <button>Друзья {{friends|length}}</button>
       <button>Мероприятия</button>
       <button>Чаты</button>
       <input type="text" placeholder="Поиск в друзьях">
@@ -214,18 +214,24 @@
         </div>
       </div>
 {% block content %}
+
 <div class="right-panel">
-  <!-- Шкала времени -->
+  <label for="user-select"><strong>Расписание пользователя:</strong></label>
+  <select id="user-select">
+    <option value="{{ request.user.id }}">Моё расписание</option>
+    {% for friend in request.user.Friends.all %}
+      <option value="{{ friend.id }}">{{ friend.username }}</option>
+    {% endfor %}
+
+</select>
   <div class="time-container">
     <div class="time-axis">
-      <!-- Метки времени каждые 6 часов -->
       <div class="time-label" style="left: 0%;">6:00</div>
       <div class="time-label" style="left: 25%;">12:00</div>
       <div class="time-label" style="left: 50%;">18:00</div>
       <div class="time-label" style="left: 75%;">00:00</div>
       <div class="time-label" style="left: 100%;">6:00</div>
 
-      <!-- Вертикальные линии -->
       <div class="time-tick" style="left: 0%;"></div>
       <div class="time-tick" style="left: 25%;"></div>
       <div class="time-tick" style="left: 50%;"></div>
@@ -233,23 +239,48 @@
       <div class="time-tick" style="left: 100%;"></div>
     </div>
   </div>
+<!-- Общий контейнер, куда мы будем вставлять события -->
+<div id="schedule-container" style="margin-top: 20px;"></div>
+  </form>
 
-  <!-- Вертикальные блоки под шкалой -->
-  <div class="day-column">
-    <div class="day-box">
-      <div class="day">1 ПН</div>
-      <div class="content">Нет событий</div>
-    </div>
-    <div class="day-box">
-      <div class="day">2 ВТ</div>
-      <div class="content">Нет событий</div>
-    </div>
-    <div class="day-box">
-      <div class="day">3 СР</div>
-      <div class="content">Нет событий</div>
-    </div>
-  </div>
-</div>
+      <script>
+  function showSchedule(userId) {
+    const container = document.getElementById("schedule-container");
+    const schedule = document.getElementById("template-" + userId);
+    if (container && schedule) {
+      container.innerHTML = schedule.innerHTML;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("user-select");
+    if (select) {
+      showSchedule(select.value); // начальное отображение
+
+      select.addEventListener("change", function () {
+        showSchedule(this.value);
+      });
+    }
+  });
+</script>
 {% endblock %}
-
+<!-- Скрытые блоки для всех пользователей -->
+<div id="all-schedules" style="display: none;">
+  {% for uid, events in schedules.items %}
+    <div id="template-{{ uid }}">
+      {% if events %}
+        <ul>
+          {% for event in events %}
+            <li>
+              <strong>{{ event.Title }}</strong> —
+              {{ event.StartTime|time:"H:i" }}–{{ event.EndTime|time:"H:i" }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Нет событий</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
 </html>
