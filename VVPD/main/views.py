@@ -73,17 +73,6 @@ def second_page(request):
     return render(request, 'SecondPage.html', context={})
 
 
-@login_required(login_url='login')
-def user_schedule_view(request, username):
-    viewed_user = get_object_or_404(User, username=username)
-    events = Event.objects.filter(Creator=viewed_user).order_by('StartTime')
-    is_own_schedule = viewed_user == request.user
-    friends = request.user.Friends.all()
-    return render(request, 'UserSchedule.html', context={
-        'viewed_user': viewed_user,
-        'events': events,
-        'is_own_schedule': viewed_user == request.user
-    })
 
 
 @login_required
