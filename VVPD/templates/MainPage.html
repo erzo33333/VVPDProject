@@ -170,6 +170,33 @@
       flex-direction: column;
       gap: 10px;
     }
+    .event-track {
+      position: relative;
+      height: 60px;
+      margin-top: 20px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+    .event-bar {
+      position: absolute;
+      top: 5px;
+      height: 50px;
+      background-color: #87CEFA;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 5px;
+      box-sizing: border-box;
+      overflow: hidden;
+  }
+    .event-label {
+      font-size: 12px;
+      color: #000;
+    }
+    .event-line {
+      position: relative;
+      height: 50px;
+      margin-bottom: 5px;
+  }
   </style>
 </head>
 <body>
@@ -222,8 +249,8 @@
     {% for friend in request.user.Friends.all %}
       <option value="{{ friend.id }}">{{ friend.username }}</option>
     {% endfor %}
-
 </select>
+
   <div class="time-container">
     <div class="time-axis">
       <div class="time-label" style="left: 0%;">6:00</div>
@@ -241,9 +268,10 @@
   </div>
 <!-- Общий контейнер, куда мы будем вставлять события -->
 <div id="schedule-container" style="margin-top: 20px;"></div>
+
   </form>
 
-      <script>
+  <script>
   function showSchedule(userId) {
     const container = document.getElementById("schedule-container");
     const schedule = document.getElementById("template-" + userId);
@@ -263,24 +291,27 @@
     }
   });
 </script>
-{% endblock %}
+
 <!-- Скрытые блоки для всех пользователей -->
-<div id="all-schedules" style="display: none;">
-  {% for uid, events in schedules.items %}
-    <div id="template-{{ uid }}">
-      {% if events %}
-        <ul>
-          {% for event in events %}
-            <li>
-              <strong>{{ event.Title }}</strong> —
+<div id="template-{{ uid }}">
+  {% if events %}
+    <div class="event-track">
+      {% for event in events %}
+        <div class="event-line">
+          <div class="event-bar" style="left: {{ event.left }}%; width: {{ event.width }}%;">
+            <div class="event-label">
+              <strong>{{ event.Title }}</strong><br>
               {{ event.StartTime|time:"H:i" }}–{{ event.EndTime|time:"H:i" }}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>Нет событий</p>
-      {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  {% endfor %}
+  {% else %}
+    <p>Нет событий</p>
+  {% endif %}
 </div>
+
+</div>
+{% endblock %}
 </html>

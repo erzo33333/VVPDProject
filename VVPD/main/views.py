@@ -48,10 +48,27 @@ def main_page(request):
     CurrentUserEvents = CurrentUser.events.all()
     friends = request.user.Friends.all()
     all_users = [CurrentUser] + list(friends)
-    schedules = {
-        u.id: Event.objects.filter(Participants=u).order_by('StartTime')
-        for u in all_users
-    }
+    schedules = {}
+    for u in all_users:
+        events = Event.objects.filter(Creator=u)
+        enriched_events = []
+        for e in events:
+            start_minutes = e.StartTime.hour * 60 + e.StartTime.minute
+            end_minutes = e.EndTime.hour * 60 + e.EndTime.minute
+            total_minutes = 24 * 60  # сутки
+
+            left = ((start_minutes - 360) / total_minutes) * 100  # 6:00 — начало шкалы
+            width = ((end_minutes - start_minutes) / total_minutes) * 100
+
+            enriched_events.append({
+                "Title": e.Title,
+                "StartTime": e.StartTime,
+                "EndTime": e.EndTime,
+                "left": left,
+                "width": width,
+            })
+
+        schedules[u.id] = enriched_events
     return render(request, 'MainPage.html', context={
         'events': CurrentUserEvents,
         'friends': friends,
