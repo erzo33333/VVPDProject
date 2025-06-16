@@ -110,3 +110,35 @@ def create_event(request):
     else:
         form = EventForm()
     return render(request, 'CreateEvent.html', {'form': form})
+
+
+@login_required
+def send_friend_request(request, user_id):
+    to_user = get_object_or_404(User, id=user_id)
+    if to_user != request.user and request.user not in to_user.FriendshipRequests.all():
+        to_user.FriendshipRequests.add(request.user)
+    return redirect('user_profile', user_id=to_user.id)
+
+
+@login_required
+def accept_friend_request(request, user_id):
+    from_user = get_object_or_404(User, id=user_id)
+    if from_user in request.user.FriendshipRequests.all():
+        request.user.Friends.add(from_user)
+        from_user.Friends.add(request.user)
+        request.user.FriendshipRequests.remove(from_user)
+    return redirect('friend_requests')
+
+
+@login_required
+def reject_friend_request(request, user_id):
+    from_user = get_object_or_404(User, id=user_id)
+    if from_user in request.user.FriendshipRequests.all():
+        request.user.FriendshipRequests.remove(from_user)
+    return redirect('friend_requests')
+
+
+@login_required
+def friend_requests_view(request):
+    incoming = request.user.FriendshipRequests.all()
+    return render(request, 'friend_requests.html', {'incoming_requests': incoming})

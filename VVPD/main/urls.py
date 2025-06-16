@@ -9,4 +9,8 @@ urlpatterns = [
     path('', views.main_page, name='main page'),
     path('second/', views.second_page, name='second'),
     path('create-event/', views.create_event, name='create_event'),
+    path('send_request/<int:user_id>/', views.send_friend_request, name='send_request'),
+    path('accept_request/<int:user_id>/', views.accept_friend_request, name='accept_request'),
+    path('reject_request/<int:user_id>/', views.reject_friend_request, name='reject_request'),
+    path('friend_requests/', views.friend_requests_view, name='friend_requests'),
 ]

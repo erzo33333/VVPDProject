@@ -218,6 +218,26 @@
       <button>Чаты</button>
       <button>+ Создать группу</button>
       <button>Заявки в друзья</button>
+      <h3>Входящие заявки в друзья</h3>
+      {% if incoming_requests %}
+        <ul>
+          {% for user in incoming_requests %}
+            <li style="margin-bottom: 10px;">
+              <strong>{{ user.username }}</strong>
+              <form method="post" action="{% url 'accept_friend_request' user.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit">Принять</button>
+              </form>
+              <form method="post" action="{% url 'reject_friend_request' user.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit">Отклонить</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Нет входящих заявок</p>
+      {% endif %}
       <p>Друзей не найдено</p>
     </div>
     <div class="main">
