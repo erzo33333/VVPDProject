@@ -4,6 +4,12 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     Friends = models.ManyToManyField("self", symmetrical=True, blank=True)
+    FriendshipRequests = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        related_name="sent_requests",
+        blank=True
+    )
     def __str__(self):
         return f'{self.username} {self.id}'
 

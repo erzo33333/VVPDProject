@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-from main.views import main_page, index_page, second_page, user_login, register, user_logout, create_event
+from main.views import main_page, index_page, second_page, user_login, register, user_logout, create_event, friend_requests_view, accept_friend_request, reject_friend_request
 
 
 urlpatterns = [
@@ -29,4 +29,8 @@ urlpatterns = [
     path('index/', index_page),
     path('second/', second_page, name='second'),
     path('create-event/', create_event, name='create_event'),
+    path('friends/requests/', friend_requests_view, name='friend_requests'),
+    path('friends/accept/<int:user_id>/', accept_friend_request, name='accept_friend_request'),
+    path('friends/reject/<int:user_id>/', reject_friend_request, name='reject_friend_request'),
+
 ]
