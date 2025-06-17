@@ -183,3 +183,40 @@ def remove_friend(request, user_id):
     friend = get_object_or_404(User, id=user_id)
     request.user.Friends.remove(friend)
     return redirect('friends')
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Event
+from .forms import EventForm
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if request.method == 'POST':
+        form = EventForm(request.POST, instance=event)
+        if form.is_valid():
+            form.save()
+            return redirect('main page')  # или куда ты хочешь перенаправить
+    else:
+        form = EventForm(instance=event)
+
+    return render(request, 'EditEvent.html', {'form': form, 'event': event})
+
+
+@login_required
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        event.delete()
+        return redirect('main page')
+    return redirect('EditEvent', event_id=event.id)
+
+
+
+@login_required
+def event_list(request):
+    events = Event.objects.filter(Creator=request.user)
+    return render(request, 'EventList.html', {'events': events})

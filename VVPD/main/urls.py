@@ -16,4 +16,8 @@ urlpatterns = [
     path('send_friend_request/<int:user_id>/', views.send_friend_request, name='send_friend_request'),
     path('friends/', views.friends_view, name='friends'),
     path('remove_friend/<int:user_id>/', views.remove_friend, name='remove_friend'),
+    path('event/<int:event_id>/edit/', views.edit_event, name='edit_event'),
+    path('event/<int:event_id>/delete/', views.delete_event, name='delete_event'),
+    path('events/', views.event_list, name='event_list'),
+    path('events/<int:event_id>/edit/', views.edit_event, name='edit_event'),
 ]

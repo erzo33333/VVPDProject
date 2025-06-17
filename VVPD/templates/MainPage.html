@@ -315,7 +315,6 @@
       <button>Чаты</button>
       <button>+ Создать группу</button>
       <button>Заявки в друзья</button>
-      <h3>Входящие заявки в друзья</h3>
       {% if incoming_requests|length > 0 %}
         <ul>
           {% for user in incoming_requests %}
@@ -335,11 +334,13 @@
       {% else %}
         <p>Нет входящих заявок</p>
       {% endif %}
-      <p>Друзей не найдено</p>
     </div>
     <div class="main">
       <div class="left-panel">
-        <button>✏️ Редактировать расписание</button>
+        <a href="{% url 'event_list' %}">
+          <button>✏️ Редактировать расписание</button>
+        </a>
+
         <div class="calendar">
           <strong>Месяц&nbsp;&nbsp;Год</strong>
           <table>
