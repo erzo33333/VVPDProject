@@ -80,7 +80,10 @@ def main_page(request):
         if left < 0:
             left = 0
         if width < 0:
-            width = 0.5
+            width = (total_minutes - start_minutes + end_minutes) / total_minutes * 100
+        if left + width > 100:
+            width = 100 - left
+
 
         date_key = e.StartTime.date()
 
