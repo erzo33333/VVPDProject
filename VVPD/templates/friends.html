@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <title>Мои друзья | Schedle</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background: linear-gradient(to bottom, #000000, #1a1a1a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .logo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(to right, purple, blue);
+      border-radius: 4px;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      width: 360px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .friend-card {
+      background: #f2f2f2;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .friend-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #000;
+    }
+
+    .remove-button {
+      background: black;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 13px;
+    }
+
+    .remove-button:hover {
+      background-color: #333;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-top: 20px;
+      background: black;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: #333;
+    }
+
+    p {
+      color: #555;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="logo-icon"></div>
+  Schedle
+</div>
+
+<div class="container">
+  <h2>Ваши друзья ({{ friends|length }})</h2>
+
+  {% if friends %}
+    {% for friend in friends %}
+      <div class="friend-card">
+        <div class="friend-name">{{ friend.username }}</div>
+        <form method="post" action="{% url 'remove_friend' friend.id %}">
+          {% csrf_token %}
+          <button class="remove-button" type="submit">Удалить</button>
+        </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>У вас пока нет друзей.</p>
+  {% endif %}
+
+  <a href="{% url 'main page' %}" class="back-button">← Назад</a>
+</div>
+
+</body>
+</html>

@@ -46,6 +46,8 @@ def register(request):
 def main_page(request):
     current_user = request.user
     selected_user_id = request.GET.get('user_id')
+    friends = current_user.Friends.all()
+    incoming_requests = current_user.FriendshipRequests.all()
 
     # Выбор пользователя
     if selected_user_id:
@@ -56,7 +58,9 @@ def main_page(request):
     else:
         selected_user = current_user
 
-    all_users = [current_user] + list(current_user.Friends.all())
+    #all_users = [current_user] + list(current_user.Friends.all())
+    all_users = User.objects.exclude(id=current_user.id)
+    possible_friends_count = len(all_users)-len(friends)
 
     events_qs = Event.objects.filter(Creator=selected_user).order_by('StartTime')
     events_by_day = defaultdict(list)
@@ -100,7 +104,11 @@ def main_page(request):
     return render(request, 'MainPage.html', context={
         'user_list': all_users,
         'selected_user': selected_user,
-        'events_by_day': dict(events_by_day)
+        'events_by_day': dict(events_by_day),
+        "friends": friends,
+        'incoming_requests': incoming_requests,
+        'possible_friends_count': possible_friends_count
+
     })
 
 
@@ -143,7 +151,7 @@ def send_friend_request(request, user_id):
     to_user = get_object_or_404(User, id=user_id)
     if to_user != request.user and request.user not in to_user.FriendshipRequests.all():
         to_user.FriendshipRequests.add(request.user)
-    return redirect('user_profile', user_id=to_user.id)
+    return redirect('main page')
 
 
 @login_required
@@ -153,7 +161,7 @@ def accept_friend_request(request, user_id):
         request.user.Friends.add(from_user)
         from_user.Friends.add(request.user)
         request.user.FriendshipRequests.remove(from_user)
-    return redirect('friend_requests')
+    return redirect('main page')
 
 
 @login_required
@@ -161,10 +169,17 @@ def reject_friend_request(request, user_id):
     from_user = get_object_or_404(User, id=user_id)
     if from_user in request.user.FriendshipRequests.all():
         request.user.FriendshipRequests.remove(from_user)
-    return redirect('friend_requests')
+    return redirect('main page')
 
 
 @login_required
-def friend_requests_view(request):
-    incoming = request.user.FriendshipRequests.all()
-    return render(request, 'friend_requests.html', {'incoming_requests': incoming})
+def friends_view(request):
+    friends = request.user.Friends.all()
+    return render(request, 'friends.html', {'friends': friends})
+
+
+@login_required
+def remove_friend(request, user_id):
+    friend = get_object_or_404(User, id=user_id)
+    request.user.Friends.remove(friend)
+    return redirect('friends')
