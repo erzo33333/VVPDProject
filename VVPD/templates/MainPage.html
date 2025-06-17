@@ -273,8 +273,6 @@
     }
     }
 
-
-
   </style>
 </head>
 <body>
@@ -298,7 +296,7 @@
         <button class="sidebar-button">Возможные друзья ({{ possible_friends_count }})</button>
 
         <ul class="friends-list">
-          {% for user in user_list %}
+          {% for user in possible_friends %}
             {% if user != request.user and user not in request.user.Friends.all %}
               <li class="friend-card-vertical">
                 <div class="friend-name-centered">{{ user.username }}</div>
@@ -311,10 +309,9 @@
         </ul>
       </div>
 
-      <button>Мероприятия</button>
       <button>Чаты</button>
       <button>+ Создать группу</button>
-      <button>Заявки в друзья</button>
+      <h3>Заявки в друзья:</h3>
       {% if incoming_requests|length > 0 %}
         <ul>
           {% for user in incoming_requests %}
@@ -397,7 +394,7 @@
       <div class="events-row">
         {% for event in events %}
           <div class="event-block"
-               style="left: {{ event.left }}%; width: {{ event.width }}%; top: {{ event.top }}px;">
+               style="left: {{ event.left }}%; width: {{ event.width }}%; top: {{ event.top }}px; background-color: {{ event.color }}">
             {{ event.Title }}
             <div class="event-time">{{ event.StartTime|time:"H:i" }} – {{ event.EndTime|time:"H:i" }}</div>
           </div>

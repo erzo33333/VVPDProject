@@ -58,9 +58,9 @@ def main_page(request):
     else:
         selected_user = current_user
 
-    #all_users = [current_user] + list(current_user.Friends.all())
-    all_users = User.objects.exclude(id=current_user.id)
-    possible_friends_count = len(all_users)-len(friends)
+    all_users = [current_user] + list(current_user.Friends.all())
+    possible_friends = User.objects.exclude(id=current_user.id)
+    possible_friends_count = len(possible_friends) - len(friends)
 
     events_qs = Event.objects.filter(Creator=selected_user).order_by('StartTime')
     events_by_day = defaultdict(list)
@@ -96,9 +96,10 @@ def main_page(request):
             'Title': e.Title,
             'StartTime': e.StartTime,
             'EndTime': e.EndTime,
-            'left': left,
-            'width': width,
-            'top': level * 50
+            'left': round(left),
+            'width': round(width),
+            'top': level * 50,
+            'color': e.Colour
         })
 
     return render(request, 'MainPage.html', context={
@@ -107,6 +108,7 @@ def main_page(request):
         'events_by_day': dict(events_by_day),
         "friends": friends,
         'incoming_requests': incoming_requests,
+        'possible_friends': possible_friends,
         'possible_friends_count': possible_friends_count
 
     })
