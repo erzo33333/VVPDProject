@@ -8,6 +8,7 @@ from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 
+
 def user_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -49,7 +50,6 @@ def main_page(request):
     friends = current_user.Friends.all()
     incoming_requests = current_user.FriendshipRequests.all()
 
-    # Выбор пользователя
     if selected_user_id:
         try:
             selected_user = current_user.Friends.get(id=selected_user_id)
@@ -65,14 +65,15 @@ def main_page(request):
     events_qs = Event.objects.filter(Creator=selected_user).order_by('StartTime')
     events_by_day = defaultdict(list)
 
-    placed = defaultdict(list)  # day → list of (start, end, level)
+    placed = defaultdict(list)
+
+    levels_by_day = defaultdict(int)
 
     for e in events_qs:
         start_minutes = e.StartTime.hour * 60 + e.StartTime.minute
         end_minutes = e.EndTime.hour * 60 + e.EndTime.minute
         total_minutes = 24 * 60
 
-        # Смещаем отсчёт от 6:00
         left = ((start_minutes - 360) / total_minutes) * 100
         width = ((end_minutes - start_minutes) / total_minutes) * 100
 
@@ -83,8 +84,8 @@ def main_page(request):
 
         date_key = e.StartTime.date()
 
-        # Уровни для перекрывающихся событий
         level = 0
+
         for placed_event in placed[date_key]:
             if not (end_minutes <= placed_event['start'] or start_minutes >= placed_event['end']):
                 if placed_event['level'] == level:
@@ -98,9 +99,11 @@ def main_page(request):
             'EndTime': e.EndTime,
             'left': round(left),
             'width': round(width),
-            'top': level * 50,
+            'top': level * 70 + 5,
             'color': e.Colour
         })
+
+        levels_by_day[date_key] = max(levels_by_day[date_key], level + 1)
 
     return render(request, 'MainPage.html', context={
         'user_list': all_users,
@@ -109,8 +112,8 @@ def main_page(request):
         "friends": friends,
         'incoming_requests': incoming_requests,
         'possible_friends': possible_friends,
-        'possible_friends_count': possible_friends_count
-
+        'possible_friends_count': possible_friends_count,
+        'max_top': dict((date, level * 70) for date, level in levels_by_day.items())
     })
 
 
@@ -121,10 +124,6 @@ def index_page(request):
 
 #@login_required(login_url='login')
 def second_page(request):
-    CurrentUser = request.user
-    #CurrentUser.create_event('Велогонка', datetime(2025, 7, 5, 14, 30), datetime(2025, 7, 5, 17, 00), description=None, colour='green', participants=None)  #Создание ивента текущим пользователем
-    #CurrentUser.Friends.add(User.objects.get(id=7))
-    print(CurrentUser.username, CurrentUser.Friends.all())
     return render(request, 'SecondPage.html', context={})
 
 
@@ -187,12 +186,6 @@ def remove_friend(request, user_id):
     return redirect('friends')
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Event
-from .forms import EventForm
-from django.contrib.auth.decorators import login_required
-
-
 @login_required
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
@@ -215,7 +208,6 @@ def delete_event(request, event_id):
         event.delete()
         return redirect('main page')
     return redirect('EditEvent', event_id=event.id)
-
 
 
 @login_required

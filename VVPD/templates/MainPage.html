@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-
+{% load custom_filters %}
 {% load static %}
 <head>
   <meta charset="UTF-8">
@@ -72,14 +72,6 @@
       cursor: pointer;
     }
 
-    .sidebar input[type="text"] {
-      width: 100%;
-      margin-top: 10px;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
     .main {
       flex: 1;
       padding: 20px;
@@ -121,40 +113,6 @@
       width: 100%;
     }
 
-    .timeline {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      color: #555;
-    }
-
-    .day-box {
-      display: flex;
-      align-items: center;
-      border: 1px solid #000;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      padding: 10px;
-      background: #fff;
-    }
-
-    .day-box .day {
-      width: 60px;
-      font-weight: bold;
-    }
-
-    .day-box .content {
-      flex: 1;
-      color: #555;
-      cursor: pointer;
-    }
-
-    .day-box input {
-      width: 100%;
-      padding: 5px;
-      font-size: 14px;
-    }
-
     .time-container {
       position: relative;
       height: 30px;
@@ -166,6 +124,7 @@
       position: absolute;
       width: 100%;
       height: 100%;
+      background-color: #F5F5F5;
     }
 
     .time-label {
@@ -184,40 +143,69 @@
     }
 
     .day-row {
-      margin-bottom: 30px;
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 5px;
+      border: 2px solid black;
+      border-radius: 8px;
+      align-items: stretch;
     }
 
     .day-label {
+      width: 70px;
+      background: white;
       font-weight: bold;
-      margin-bottom: 5px;
+      text-align: center;
+      padding: 5px;
+      border-right: 2px solid black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 14px;
+      border-radius: 8px 0px 0px 8px;
     }
 
     .events-row {
       position: relative;
-      min-height: 50px;
+      flex: 1;
+      min-height: 70px;
       background: #DDDDDD;
-      border-radius: 5px;
       padding: 5px 0;
     }
 
     .event-block {
       position: absolute;
-      height: 40px;
+      height: 60px;
       background-color: #7070AA;
       color: white;
       padding: 5px 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      font-size: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .event-time {
-      font-size: 10px;
+    .event-time.start,
+    .event-time.end {
+      font-size: 12px;
       opacity: 0.8;
+      flex-shrink: 0;
     }
+
+    .event-title {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .possible-friends {
       max-width: 400px;
       margin-top: 30px;
@@ -229,7 +217,7 @@
       background: black;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       font-size: 15px;
       margin-bottom: 15px;
       cursor: default;
@@ -249,7 +237,7 @@
       padding: 10px 0;
       margin-bottom: 15px;
       border: 1px solid #ddd;
-      border-radius: 6px;
+      border-radius: 8px;
       background: transparent; /* Убираем белую подложку */
     }
 
@@ -262,7 +250,7 @@
       background-color: #000;
       color: white;
       padding: 6px 14px;
-      border-radius: 5px;
+      border-radius: 8px;
       text-decoration: none;
       font-size: 14px;
       transition: background-color 0.2s ease;
@@ -292,8 +280,12 @@
       <a href="{% url 'friends' %}">
         <button>Друзья {{friends|length}}</button>
       </a>
+
+      <button>Чаты</button>
+      <button>Создать группу</button>
+
       <div class="possible-friends">
-        <button class="sidebar-button">Возможные друзья ({{ possible_friends_count }})</button>
+        <h3>Возможные друзья ({{ possible_friends_count }})</h3>
 
         <ul class="friends-list">
           {% for user in possible_friends %}
@@ -309,8 +301,6 @@
         </ul>
       </div>
 
-      <button>Чаты</button>
-      <button>+ Создать группу</button>
       <h3>Заявки в друзья:</h3>
       {% if incoming_requests|length > 0 %}
         <ul>
@@ -390,13 +380,19 @@
   <!-- События по дням -->
   {% for date, events in events_by_day.items %}
     <div class="day-row">
-      <div class="day-label">{{ date }}</div>
-      <div class="events-row">
+      <div class="day-label">{{ date|date:"d.m.y" }} {{ date|date:"D" }}</div>
+      <div class="events-row" style="height: {{ max_top|default_if_none:0|get_item:date }}px;">
         {% for event in events %}
           <div class="event-block"
-               style="left: {{ event.left }}%; width: {{ event.width }}%; top: {{ event.top }}px; background-color: {{ event.color }}">
-            {{ event.Title }}
-            <div class="event-time">{{ event.StartTime|time:"H:i" }} – {{ event.EndTime|time:"H:i" }}</div>
+               style="left: {{ event.left }}%;
+               width: {{ event.width }}%;
+               top: {{ event.top }}px;
+               background-color: {{ event.color }};">
+
+          <div class="event-time start">{{ event.StartTime|time:"H:i" }}</div>
+          <div class="event-title">{{ event.Title }}</div>
+          <div class="event-time end">{{ event.EndTime|time:"H:i" }}</div>
+
           </div>
         {% endfor %}
       </div>
