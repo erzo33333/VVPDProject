@@ -155,16 +155,6 @@
       font-size: 14px;
     }
 
-    #test-button {
-      margin: 20px;
-      padding: 10px 20px;
-      background: darkgreen;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
     .time-container {
       position: relative;
       height: 30px;
@@ -204,8 +194,8 @@
 
     .events-row {
       position: relative;
-      min-height: 60px;
-      background: #f5f5f5;
+      min-height: 50px;
+      background: #DDDDDD;
       border-radius: 5px;
       padding: 5px 0;
     }
@@ -213,7 +203,7 @@
     .event-block {
       position: absolute;
       height: 40px;
-      background-color: #4a90e2;
+      background-color: #7070AA;
       color: white;
       padding: 5px 10px;
       border-radius: 5px;
@@ -228,6 +218,62 @@
       font-size: 10px;
       opacity: 0.8;
     }
+    .possible-friends {
+      max-width: 400px;
+      margin-top: 30px;
+    }
+
+    .sidebar-button {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 15px;
+      margin-bottom: 15px;
+      cursor: default;
+      text-align: center;
+    }
+
+    .friends-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .friend-card-vertical {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: transparent; /* Убираем белую подложку */
+    }
+
+    .friend-name-centered {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .add-button-centered {
+      background-color: #000;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.2s ease;
+    }
+
+    .add-button-centered:hover {
+      background-color: #444;
+    }
+    }
+
+
 
   </style>
 </head>
@@ -245,13 +291,31 @@
   </header>
   <div class="container">
     <div class="sidebar">
-      <button>Друзья {{friends|length}}</button>
+      <a href="{% url 'friends' %}">
+        <button>Друзья {{friends|length}}</button>
+      </a>
+      <div class="possible-friends">
+        <button class="sidebar-button">Возможные друзья ({{ possible_friends_count }})</button>
+
+        <ul class="friends-list">
+          {% for user in user_list %}
+            {% if user != request.user and user not in request.user.Friends.all %}
+              <li class="friend-card-vertical">
+                <div class="friend-name-centered">{{ user.username }}</div>
+                <a class="add-button-centered" href="{% url 'send_friend_request' user.id %}">
+                  Добавить в друзья
+                </a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
       <button>Мероприятия</button>
       <button>Чаты</button>
       <button>+ Создать группу</button>
       <button>Заявки в друзья</button>
-      <h3>Входящие заявки в друзья</h3>
-      {% if incoming_requests %}
+      {% if incoming_requests|length > 0 %}
         <ul>
           {% for user in incoming_requests %}
             <li style="margin-bottom: 10px;">
@@ -270,11 +334,13 @@
       {% else %}
         <p>Нет входящих заявок</p>
       {% endif %}
-      <p>Друзей не найдено</p>
     </div>
     <div class="main">
       <div class="left-panel">
-        <button>✏️ Редактировать расписание</button>
+        <a href="{% url 'event_list' %}">
+          <button>✏️ Редактировать расписание</button>
+        </a>
+
         <div class="calendar">
           <strong>Месяц&nbsp;&nbsp;Год</strong>
           <table>

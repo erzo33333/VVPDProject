@@ -37,6 +37,12 @@ class RegistrationForm(forms.ModelForm):
 
 
 class EventForm(forms.ModelForm):
+    StartTime = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M')
+    )
+    EndTime = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M')
+    )
 
     class Meta:
         model = Event
@@ -50,8 +56,14 @@ class EventForm(forms.ModelForm):
         }
         widgets = {
             'Title': forms.TextInput(attrs={'placeholder': 'Название события'}),
-            'StartTime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'EndTime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'Description': forms.Textarea(attrs={'rows': 4}),
             'Colour': forms.TextInput(attrs={'placeholder': 'Цвет события (например: blue)'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Преобразуем даты в формат для datetime-local, чтобы при редактировании корректно показывались значения
+        for field in ['StartTime', 'EndTime']:
+            value = self.initial.get(field) or (self.instance and getattr(self.instance, field))
+            if value:
+                self.initial[field] = value.strftime('%Y-%m-%dT%H:%M')
